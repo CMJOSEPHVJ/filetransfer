@@ -3,860 +3,152 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-    <title>📁 File Transfer - Cross Device</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <title>📁 File Transfer - Debug Version</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.2/peerjs.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --primary: #4F46E5;
-            --primary-dark: #4338CA;
-            --success: #10B981;
-            --danger: #EF4444;
-            --warning: #F59E0B;
-            --bg: #F3F4F6;
-            --card-bg: #FFFFFF;
-            --text: #1F2937;
-            --text-light: #6B7280;
-            --shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-            --radius: 16px;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background: var(--bg);
-            min-height: 100vh;
-            padding: 20px;
-            color: var(--text);
-        }
-
-        .app-container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .header {
-            text-align: center;
-            padding: 30px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: var(--radius);
-            margin-bottom: 30px;
-            color: white;
-            box-shadow: var(--shadow);
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-        }
-
-        .header h1 i {
-            margin-right: 15px;
-        }
-
-        .header p {
-            opacity: 0.9;
-            margin-top: 5px;
-        }
-
-        .server-status {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            margin-top: 10px;
-        }
-
-        .server-status .dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #FCD34D;
-            animation: pulse 2s infinite;
-        }
-
-        .server-status .dot.connected {
-            background: #10B981;
-        }
-
-        .server-status .dot.disconnected {
-            background: #EF4444;
-            animation: none;
-        }
-
-        @keyframes pulse {
-            0%,
-            100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.4;
-            }
-        }
-
-        .card {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            padding: 25px;
-            box-shadow: var(--shadow);
-            margin-bottom: 20px;
-        }
-
-        .card-title {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .card-title i {
-            color: var(--primary);
-        }
-
-        .device-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            flex-wrap: wrap;
-            padding: 15px;
-            background: #F9FAFB;
-            border-radius: 10px;
-        }
-
-        .device-id {
-            flex: 1;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-            color: var(--text-light);
-            word-break: break-all;
-            background: white;
-            padding: 8px 12px;
-            border-radius: 6px;
-            border: 1px solid #E5E7EB;
-            min-width: 150px;
-        }
-
-        .copy-btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 0.9rem;
-        }
-
-        .copy-btn:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-        .status-badge.online {
-            background: #D1FAE5;
-            color: #065F46;
-        }
-
-        .status-badge.offline {
-            background: #FEE2E2;
-            color: #991B1B;
-        }
-
-        .status-badge.connecting {
-            background: #FEF3C7;
-            color: #92400E;
-        }
-
-        .connect-section {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .connect-section input {
-            flex: 1;
-            padding: 12px 16px;
-            border: 2px solid #E5E7EB;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: all 0.3s;
-            min-width: 200px;
-        }
-
-        .connect-section input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-        }
-
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            white-space: nowrap;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-        }
-
-        .btn-primary:hover:not(:disabled) {
-            background: var(--primary-dark);
-        }
-
-        .btn-success {
-            background: var(--success);
-            color: white;
-        }
-
-        .btn-success:hover:not(:disabled) {
-            background: #059669;
-        }
-
-        .btn-danger {
-            background: var(--danger);
-            color: white;
-        }
-
-        .btn-danger:hover:not(:disabled) {
-            background: #DC2626;
-        }
-
-        .btn-sm {
-            padding: 6px 12px;
-            font-size: 0.8rem;
-        }
-
-        .file-drop-zone {
-            border: 3px dashed #D1D5DB;
-            border-radius: 12px;
-            padding: 40px 20px;
-            text-align: center;
-            transition: all 0.3s;
-            cursor: pointer;
-            background: #FAFBFC;
-        }
-
-        .file-drop-zone:hover {
-            border-color: var(--primary);
-            background: #F3F4FF;
-        }
-
-        .file-drop-zone.dragover {
-            border-color: var(--primary);
-            background: #EEF2FF;
-            transform: scale(1.01);
-        }
-
-        .file-drop-zone i {
-            font-size: 3rem;
-            color: var(--primary);
-            margin-bottom: 10px;
-        }
-
-        .file-drop-zone p {
-            color: var(--text-light);
-        }
-
-        .file-drop-zone .file-types {
-            font-size: 0.8rem;
-            color: #9CA3AF;
-            margin-top: 5px;
-        }
-
-        #fileInput {
-            display: none;
-        }
-
-        .file-list {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .file-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 15px;
-            background: #F9FAFB;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            transition: all 0.3s;
-            border-left: 4px solid var(--primary);
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .file-item .file-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            flex: 1;
-            min-width: 0;
-        }
-
-        .file-item .file-icon {
-            font-size: 1.5rem;
-            color: var(--primary);
-        }
-
-        .file-item .file-name {
-            font-weight: 500;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 200px;
-        }
-
-        .file-item .file-size {
-            font-size: 0.8rem;
-            color: var(--text-light);
-        }
-
-        .file-item .file-progress {
-            width: 100px;
-            height: 6px;
-            background: #E5E7EB;
-            border-radius: 3px;
-            overflow: hidden;
-        }
-
-        .file-item .file-progress .progress-fill {
-            height: 100%;
-            background: var(--primary);
-            transition: width 0.3s;
-            border-radius: 3px;
-        }
-
-        .file-item .file-status {
-            font-size: 0.8rem;
-            font-weight: 600;
-            padding: 4px 10px;
-            border-radius: 12px;
-        }
-
-        .file-status.pending {
-            background: #FEF3C7;
-            color: #92400E;
-        }
-
-        .file-status.sending {
-            background: #DBEAFE;
-            color: #1E40AF;
-        }
-
-        .file-status.completed {
-            background: #D1FAE5;
-            color: #065F46;
-        }
-
-        .file-status.error {
-            background: #FEE2E2;
-            color: #991B1B;
-        }
-
-        .file-status.received {
-            background: #D1FAE5;
-            color: #065F46;
-        }
-
-        .received-files-list {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .received-file-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 15px;
-            background: #F0FDF4;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            border-left: 4px solid var(--success);
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .received-file-item .file-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            flex: 1;
-            min-width: 0;
-        }
-
-        .received-file-item .file-icon {
-            font-size: 1.5rem;
-            color: var(--success);
-        }
-
-        .received-file-item .file-name {
-            font-weight: 500;
-            word-break: break-all;
-        }
-
-        .received-file-item .file-size {
-            font-size: 0.8rem;
-            color: var(--text-light);
-        }
-
-        .received-file-item .file-time {
-            font-size: 0.7rem;
-            color: var(--text-light);
-        }
-
-        .received-file-item .file-actions {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .tabs {
-            display: flex;
-            gap: 5px;
-            margin-bottom: 20px;
-            background: #F3F4F6;
-            padding: 5px;
-            border-radius: 10px;
-            overflow-x: auto;
-        }
-
-        .tab {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            background: transparent;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-            color: var(--text-light);
-            min-width: 80px;
-            text-align: center;
-        }
-
-        .tab.active {
-            background: white;
-            color: var(--text);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        }
-
-        .tab:hover:not(.active) {
-            background: rgba(255, 255, 255, 0.5);
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        .toast {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            background: #1F2937;
-            color: white;
-            padding: 15px 25px;
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            transform: translateY(100px);
-            opacity: 0;
-            transition: all 0.4s ease;
-            z-index: 1000;
-            max-width: 400px;
-        }
-
-        .toast.show {
-            transform: translateY(0);
-            opacity: 1;
-        }
-
-        .toast.success {
-            background: var(--success);
-        }
-
-        .toast.error {
-            background: var(--danger);
-        }
-
-        .toast.warning {
-            background: var(--warning);
-        }
-
-        .spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        .empty-state {
-            text-align: center;
-            color: var(--text-light);
-            padding: 30px 20px;
-        }
-
-        .empty-state i {
-            font-size: 2.5rem;
-            display: block;
-            margin-bottom: 10px;
-            opacity: 0.5;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.7rem;
-            font-weight: 600;
-        }
-
-        .badge-success {
-            background: #D1FAE5;
-            color: #065F46;
-        }
-
-        .connection-hint {
-            background: #FEF3C7;
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-top: 10px;
-            font-size: 0.9rem;
-            color: #92400E;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .connection-hint i {
-            font-size: 1.2rem;
-        }
-
-        .qr-container {
-            display: flex;
-            justify-content: center;
-            padding: 20px;
-            background: white;
-            border-radius: 8px;
-        }
-
-        #qrCode {
-            width: 200px;
-            height: 200px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: white;
-            border: 2px solid #E5E7EB;
-            border-radius: 8px;
-            padding: 10px;
-        }
-
-        #qrCode canvas {
-            width: 100% !important;
-            height: 100% !important;
-        }
-
-        .auto-download-banner {
-            background: #DBEAFE;
-            padding: 10px 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #1E40AF;
-        }
-
-        .auto-download-banner i {
-            font-size: 1.2rem;
-        }
-
-        @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-
-            .header h1 {
-                font-size: 1.5rem;
-            }
-
-            .card {
-                padding: 15px;
-            }
-
-            .device-info {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .connect-section {
-                flex-direction: column;
-            }
-
-            .connect-section input {
-                width: 100%;
-                min-width: unset;
-            }
-
-            .btn {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .file-item .file-progress {
-                width: 100%;
-            }
-
-            #qrCode {
-                width: 150px;
-                height: 150px;
-            }
-
-            .tabs {
-                flex-wrap: nowrap;
-            }
-
-            .tab {
-                font-size: 0.8rem;
-                padding: 8px;
-                min-width: 60px;
-            }
-
-            .file-item .file-name {
-                max-width: 120px;
-            }
-
-            .received-file-item .file-name {
-                max-width: 120px;
-            }
-        }
-
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #F3F4F6;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #D1D5DB;
-            border-radius: 3px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #9CA3AF;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif; background: #F3F4F6; min-height: 100vh; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .header { text-align: center; padding: 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; margin-bottom: 20px; color: white; }
+        .header h1 { font-size: 2rem; }
+        .card { background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .card-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        .device-id-box { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 15px; background: #F9FAFB; border-radius: 10px; }
+        .device-id { flex: 1; font-family: monospace; font-size: 1.2rem; background: white; padding: 10px; border-radius: 6px; border: 1px solid #E5E7EB; }
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-primary { background: #4F46E5; color: white; }
+        .btn-primary:hover { background: #4338CA; transform: translateY(-2px); }
+        .btn-success { background: #10B981; color: white; }
+        .btn-success:hover { background: #059669; transform: translateY(-2px); }
+        .btn-danger { background: #EF4444; color: white; }
+        .btn-danger:hover { background: #DC2626; transform: translateY(-2px); }
+        .btn-warning { background: #F59E0B; color: white; }
+        .btn-warning:hover { background: #D97706; transform: translateY(-2px); }
+        .btn-sm { padding: 5px 12px; font-size: 0.8rem; }
+        .connect-section { display: flex; gap: 10px; flex-wrap: wrap; }
+        .connect-section input { flex: 1; padding: 12px; border: 2px solid #E5E7EB; border-radius: 8px; font-size: 1rem; min-width: 150px; }
+        .connect-section input:focus { outline: none; border-color: #4F46E5; }
+        .file-drop-zone { border: 3px dashed #D1D5DB; border-radius: 12px; padding: 40px 20px; text-align: center; cursor: pointer; transition: all 0.3s; background: #FAFBFC; }
+        .file-drop-zone:hover { border-color: #4F46E5; background: #F3F4FF; }
+        .file-drop-zone.dragover { border-color: #4F46E5; background: #EEF2FF; transform: scale(1.01); }
+        .file-drop-zone i { font-size: 3rem; color: #4F46E5; margin-bottom: 10px; }
+        #fileInput { display: none; }
+        .file-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; background: #F9FAFB; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid #4F46E5; flex-wrap: wrap; gap: 10px; }
+        .file-item .info { display: flex; align-items: center; gap: 15px; flex: 1; min-width: 0; }
+        .file-item .name { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+        .file-item .size { font-size: 0.8rem; color: #6B7280; }
+        .file-item .progress { width: 100px; height: 6px; background: #E5E7EB; border-radius: 3px; overflow: hidden; }
+        .file-item .progress .fill { height: 100%; background: #4F46E5; transition: width 0.3s; }
+        .file-item .status { font-size: 0.8rem; font-weight: 600; padding: 4px 10px; border-radius: 12px; }
+        .status-pending { background: #FEF3C7; color: #92400E; }
+        .status-sending { background: #DBEAFE; color: #1E40AF; }
+        .status-completed { background: #D1FAE5; color: #065F46; }
+        .status-error { background: #FEE2E2; color: #991B1B; }
+        .status-received { background: #D1FAE5; color: #065F46; }
+        .received-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; background: #F0FDF4; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid #10B981; flex-wrap: wrap; gap: 10px; }
+        .tabs { display: flex; gap: 5px; margin-bottom: 20px; background: #F3F4F6; padding: 5px; border-radius: 10px; overflow-x: auto; }
+        .tab { flex: 1; padding: 10px; border: none; background: transparent; border-radius: 8px; cursor: pointer; font-weight: 600; color: #6B7280; min-width: 80px; text-align: center; }
+        .tab.active { background: white; color: #1F2937; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; background: #D1FAE5; color: #065F46; }
+        .debug-box { background: #1F2937; color: #10B981; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 0.8rem; max-height: 300px; overflow-y: auto; white-space: pre-wrap; margin-top: 10px; }
+        .debug-box .error { color: #EF4444; }
+        .debug-box .success { color: #10B981; }
+        .debug-box .info { color: #60A5FA; }
+        .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+        .status-badge.online { background: #D1FAE5; color: #065F46; }
+        .status-badge.offline { background: #FEE2E2; color: #991B1B; }
+        .status-badge.connecting { background: #FEF3C7; color: #92400E; }
+        .toast { position: fixed; bottom: 30px; right: 30px; background: #1F2937; color: white; padding: 15px 25px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transform: translateY(100px); opacity: 0; transition: all 0.4s ease; z-index: 1000; max-width: 400px; }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.success { background: #10B981; }
+        .toast.error { background: #EF4444; }
+        .toast.warning { background: #F59E0B; }
+        .auto-download-banner { background: #DBEAFE; padding: 10px 15px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; color: #1E40AF; }
+        @media (max-width: 768px) { .device-id-box { flex-direction: column; } .connect-section { flex-direction: column; } .btn { width: 100%; justify-content: center; } .tabs { flex-wrap: nowrap; } .tab { font-size: 0.8rem; padding: 8px; min-width: 60px; } }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #F3F4F6; }
+        ::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 3px; }
     </style>
 </head>
 <body>
-    <div class="app-container">
+    <div class="container">
         <div class="header">
             <h1><i class="fas fa-exchange-alt"></i> File Transfer</h1>
             <p>Share files between devices instantly</p>
-            <div class="server-status">
-                <span class="dot" id="serverDot"></span>
-                <span id="serverStatus">Initializing...</span>
+            <div style="margin-top:10px;display:flex;justify-content:center;gap:15px;flex-wrap:wrap;">
+                <span class="status-badge online" id="statusBadge"><i class="fas fa-circle"></i> Online</span>
+                <span style="background:rgba(255,255,255,0.2);padding:4px 12px;border-radius:20px;font-size:0.8rem;" id="serverStatus">Initializing...</span>
             </div>
         </div>
 
         <div class="card">
-            <div class="device-info">
-                <div style="flex:1;min-width:150px;">
-                    <span style="font-weight:600;">📱 My Device ID</span>
+            <div class="device-id-box">
+                <div style="flex:1;">
+                    <div style="font-weight:600;font-size:0.9rem;">📱 My Device ID</div>
                     <div class="device-id" id="deviceId">Loading...</div>
                 </div>
-                <button class="copy-btn" onclick="copyDeviceId()">
-                    <i class="fas fa-copy"></i> Copy
-                </button>
-                <span class="status-badge online" id="statusBadge">
-                    <i class="fas fa-circle"></i> Online
-                </span>
+                <button class="btn btn-primary btn-sm" onclick="copyDeviceId()"><i class="fas fa-copy"></i> Copy</button>
             </div>
         </div>
 
         <div class="tabs">
-            <button class="tab active" data-tab="connect">
-                <i class="fas fa-plug"></i> Connect
-            </button>
-            <button class="tab" data-tab="send">
-                <i class="fas fa-upload"></i> Send
-            </button>
-            <button class="tab" data-tab="received">
-                <i class="fas fa-download"></i> Received
-                <span class="badge badge-success" id="receivedBadge" style="display:none;">0</span>
-            </button>
-            <button class="tab" data-tab="history">
-                <i class="fas fa-history"></i> History
-            </button>
+            <button class="tab active" data-tab="connect"><i class="fas fa-plug"></i> Connect</button>
+            <button class="tab" data-tab="send"><i class="fas fa-upload"></i> Send</button>
+            <button class="tab" data-tab="received"><i class="fas fa-download"></i> Received <span class="badge" id="receivedBadge" style="display:none;">0</span></button>
+            <button class="tab" data-tab="debug"><i class="fas fa-bug"></i> Debug</button>
         </div>
 
         <div class="tab-content active" id="connectTab">
             <div class="card">
-                <div class="card-title">
-                    <i class="fas fa-qrcode"></i> Connect to Device
-                </div>
+                <div class="card-title"><i class="fas fa-link"></i> Connect to Device</div>
                 <div class="connect-section">
                     <input type="text" id="targetDeviceId" placeholder="Enter Device ID to connect..." />
-                    <button class="btn btn-primary" id="connectBtn" onclick="connectToDevice()">
-                        <i class="fas fa-link"></i> Connect
-                    </button>
+                    <button class="btn btn-primary" id="connectBtn" onclick="connectToDevice()"><i class="fas fa-link"></i> Connect</button>
                 </div>
-                <div class="connection-hint">
-                    <i class="fas fa-info-circle"></i>
-                    <span>Enter the Device ID shown on the other device</span>
-                </div>
-                <div style="margin-top: 15px; text-align: center; color: var(--text-light);">
-                    <p>or scan QR code from other device</p>
-                </div>
-                <div class="qr-container">
-                    <div id="qrCode">
-                        <div class="empty-state">
-                            <i class="fas fa-qrcode"></i>
-                            <p>Loading QR...</p>
-                        </div>
-                    </div>
+                <div style="margin-top:15px;padding:10px;background:#FEF3C7;border-radius:8px;font-size:0.9rem;color:#92400E;">
+                    <i class="fas fa-info-circle"></i> Enter the Device ID shown on the other device
                 </div>
             </div>
-
             <div class="card">
-                <div class="card-title">
-                    <i class="fas fa-users"></i> Connection Status
-                    <span id="connectionStatus" style="font-size:0.8rem;color:var(--text-light);margin-left:10px;">(Not connected)</span>
-                </div>
-                <div id="connectionInfo">
-                    <div class="empty-state">
-                        <i class="fas fa-link"></i>
-                        <p>No active connection</p>
-                        <p style="font-size:0.8rem;">Enter a Device ID above to connect</p>
-                    </div>
-                </div>
+                <div class="card-title"><i class="fas fa-users"></i> Connection Status <span id="connectionStatus" style="font-size:0.8rem;color:#6B7280;">(Not connected)</span></div>
+                <div id="connectionInfo"><div style="text-align:center;padding:20px;color:#6B7280;"><i class="fas fa-link" style="font-size:2rem;display:block;margin-bottom:10px;"></i><p>No active connection</p></div></div>
             </div>
         </div>
 
         <div class="tab-content" id="sendTab">
             <div class="card">
-                <div class="card-title">
-                    <i class="fas fa-upload"></i> Send Files
-                    <span id="connectionStatusSend" style="font-size:0.8rem;color:var(--text-light);margin-left:10px;">(Not connected)</span>
-                </div>
-                <div class="auto-download-banner">
-                    <i class="fas fa-info-circle"></i>
-                    <span>Files will be auto-downloaded on the receiving device!</span>
-                </div>
+                <div class="card-title"><i class="fas fa-upload"></i> Send Files <span id="connectionStatusSend" style="font-size:0.8rem;color:#6B7280;">(Not connected)</span></div>
+                <div class="auto-download-banner"><i class="fas fa-info-circle"></i> Files will auto-download on the receiving device!</div>
                 <div class="file-drop-zone" id="dropZone">
                     <i class="fas fa-cloud-upload-alt"></i>
                     <p>Drop files here or click to browse</p>
-                    <div class="file-types">Any file type supported</div>
+                    <div style="font-size:0.8rem;color:#9CA3AF;">Any file type supported</div>
                     <input type="file" id="fileInput" multiple>
                 </div>
             </div>
-
             <div class="card">
-                <div class="card-title">
-                    <i class="fas fa-list"></i> Transfer Queue
-                    <span id="queueCount" style="font-size:0.8rem;color:var(--text-light);">(0)</span>
-                </div>
-                <div class="file-list" id="fileList">
-                    <div class="empty-state">
-                        <i class="fas fa-inbox"></i>
-                        <p>No files in queue</p>
-                    </div>
-                </div>
+                <div class="card-title"><i class="fas fa-list"></i> Transfer Queue <span id="queueCount" style="font-size:0.8rem;color:#6B7280;">(0)</span></div>
+                <div id="fileList"><div style="text-align:center;padding:20px;color:#6B7280;"><i class="fas fa-inbox" style="font-size:2rem;display:block;margin-bottom:10px;"></i><p>No files in queue</p></div></div>
             </div>
         </div>
 
         <div class="tab-content" id="receivedTab">
             <div class="card">
-                <div class="card-title">
-                    <i class="fas fa-download"></i> Received Files
-                    <span id="receivedCount" style="font-size:0.8rem;color:var(--text-light);">(0)</span>
-                    <button class="btn btn-danger btn-sm" style="margin-left:auto;" onclick="clearReceivedFiles()">
-                        <i class="fas fa-trash"></i> Clear All
-                    </button>
+                <div class="card-title"><i class="fas fa-download"></i> Received Files <span id="receivedCount" style="font-size:0.8rem;color:#6B7280;">(0)</span>
+                    <button class="btn btn-danger btn-sm" style="margin-left:auto;" onclick="clearReceivedFiles()"><i class="fas fa-trash"></i> Clear All</button>
                 </div>
-                <div class="auto-download-banner">
-                    <i class="fas fa-download"></i>
-                    <span>Files are automatically downloaded when received!</span>
-                </div>
-                <div class="received-files-list" id="receivedFilesList">
-                    <div class="empty-state">
-                        <i class="fas fa-inbox"></i>
-                        <p>No received files yet</p>
-                        <p style="font-size:0.8rem;">Files you receive will auto-download</p>
-                    </div>
-                </div>
+                <div class="auto-download-banner"><i class="fas fa-download"></i> Files auto-download when received!</div>
+                <div id="receivedFilesList"><div style="text-align:center;padding:20px;color:#6B7280;"><i class="fas fa-inbox" style="font-size:2rem;display:block;margin-bottom:10px;"></i><p>No received files yet</p></div></div>
             </div>
         </div>
 
-        <div class="tab-content" id="historyTab">
+        <div class="tab-content" id="debugTab">
             <div class="card">
-                <div class="card-title">
-                    <i class="fas fa-history"></i> Transfer History
-                    <button class="btn btn-danger btn-sm" style="margin-left:auto;" onclick="clearHistory()">
-                        <i class="fas fa-trash"></i> Clear All
-                    </button>
-                </div>
-                <div id="historyList">
-                    <div class="empty-state">
-                        <i class="fas fa-history"></i>
-                        <p>No transfer history</p>
-                    </div>
-                </div>
+                <div class="card-title"><i class="fas fa-bug"></i> Debug Log <button class="btn btn-danger btn-sm" style="margin-left:auto;" onclick="clearDebug()"><i class="fas fa-trash"></i> Clear</button></div>
+                <div class="debug-box" id="debugLog">[System] Debug console ready...</div>
             </div>
         </div>
     </div>
@@ -865,7 +157,7 @@
 
     <script>
         // ============================================
-        // FILE TRANSFER - AUTO DOWNLOAD FIXED
+        // FILE TRANSFER WITH FULL DEBUGGING
         // ============================================
 
         class FileTransferApp {
@@ -873,7 +165,6 @@
                 this.peer = null;
                 this.connections = {};
                 this.fileQueue = [];
-                this.transferHistory = [];
                 this.receivedFiles = [];
                 this.currentConnection = null;
                 this.isConnected = false;
@@ -881,15 +172,35 @@
                 this.pendingFileData = {};
                 this.isReceiving = false;
                 this.peerReady = false;
-                this.receivedFileCounter = 0;
                 
                 this.initializeElements();
                 this.initializeEventListeners();
                 this.initializePeer();
-                this.loadHistory();
-                this.loadReceivedFiles();
+                
+                this.log('🚀 App initialized');
             }
 
+            // -------- LOGGING --------
+            log(message, type = 'info') {
+                const el = document.getElementById('debugLog');
+                const timestamp = new Date().toLocaleTimeString();
+                const colors = {
+                    info: '#60A5FA',
+                    success: '#10B981',
+                    error: '#EF4444',
+                    warning: '#F59E0B'
+                };
+                const color = colors[type] || '#60A5FA';
+                el.innerHTML += `\n[${timestamp}] <span style="color:${color}">${message}</span>`;
+                el.scrollTop = el.scrollHeight;
+                console.log(`[${timestamp}]`, message);
+            }
+
+            clearDebug() {
+                document.getElementById('debugLog').innerHTML = '[System] Debug console cleared...';
+            }
+
+            // -------- INIT --------
             initializeElements() {
                 this.deviceIdEl = document.getElementById('deviceId');
                 this.statusBadge = document.getElementById('statusBadge');
@@ -899,16 +210,13 @@
                 this.dropZone = document.getElementById('dropZone');
                 this.fileList = document.getElementById('fileList');
                 this.queueCount = document.getElementById('queueCount');
-                this.historyList = document.getElementById('historyList');
                 this.receivedFilesList = document.getElementById('receivedFilesList');
                 this.receivedCount = document.getElementById('receivedCount');
                 this.receivedBadge = document.getElementById('receivedBadge');
-                this.qrCodeContainer = document.getElementById('qrCode');
-                this.serverStatus = document.getElementById('serverStatus');
-                this.serverDot = document.getElementById('serverDot');
                 this.connectionStatus = document.getElementById('connectionStatus');
                 this.connectionStatusSend = document.getElementById('connectionStatusSend');
                 this.connectionInfo = document.getElementById('connectionInfo');
+                this.serverStatus = document.getElementById('serverStatus');
                 
                 document.querySelectorAll('.tab').forEach(tab => {
                     tab.addEventListener('click', () => {
@@ -923,6 +231,7 @@
             initializeEventListeners() {
                 this.fileInput.addEventListener('change', (e) => {
                     if (e.target.files.length > 0) {
+                        this.log(`📁 Selected ${e.target.files.length} file(s) for upload`, 'info');
                         this.addFilesToQueue(e.target.files);
                         this.fileInput.value = '';
                     }
@@ -942,6 +251,7 @@
                     e.preventDefault();
                     this.dropZone.classList.remove('dragover');
                     if (e.dataTransfer.files.length > 0) {
+                        this.log(`📁 Dropped ${e.dataTransfer.files.length} file(s)`, 'info');
                         this.addFilesToQueue(e.dataTransfer.files);
                     }
                 });
@@ -951,22 +261,18 @@
                 });
 
                 this.targetDeviceId.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
-                        this.connectToDevice();
-                    }
+                    if (e.key === 'Enter') this.connectToDevice();
                 });
             }
 
-            // ============================================
-            // PEERJS INITIALIZATION
-            // ============================================
-
+            // -------- PEERJS --------
             initializePeer() {
-                this.serverStatus.textContent = 'Connecting to PeerJS...';
-                this.serverDot.className = 'dot';
+                this.log('🔌 Initializing PeerJS...', 'info');
+                this.serverStatus.textContent = 'Connecting...';
 
                 this.deviceId = this.generateDeviceId();
                 this.deviceIdEl.textContent = this.deviceId;
+                this.log(`📱 Device ID: ${this.deviceId}`, 'info');
 
                 try {
                     this.peer = new Peer(this.deviceId, {
@@ -982,52 +288,43 @@
                     });
 
                     this.peer.on('open', (id) => {
-                        console.log('✅ PeerJS connected with ID:', id);
-                        this.serverStatus.textContent = 'Ready to connect';
-                        this.serverDot.className = 'dot connected';
+                        this.log(`✅ PeerJS connected with ID: ${id}`, 'success');
+                        this.serverStatus.textContent = 'Ready';
                         this.peerReady = true;
                         this.updateStatus('online');
-                        this.showToast('Device ready! Share your ID to receive files.', 'success');
-                        this.generateQRCode();
+                        this.showToast('Device ready! Share your ID.', 'success');
                     });
 
                     this.peer.on('connection', (conn) => {
-                        console.log('📥 Incoming connection from:', conn.peer);
+                        this.log(`📥 Incoming connection from: ${conn.peer}`, 'info');
                         this.handleConnection(conn);
                     });
 
                     this.peer.on('error', (error) => {
-                        console.error('PeerJS error:', error);
-                        this.serverStatus.textContent = 'Error: ' + error.type;
-                        this.serverDot.className = 'dot disconnected';
-                        this.showToast('Connection error: ' + error.type, 'error');
+                        this.log(`❌ PeerJS error: ${error.type} - ${error.message}`, 'error');
+                        this.serverStatus.textContent = 'Error';
+                        this.showToast('Error: ' + error.type, 'error');
                         
                         if (error.type === 'unavailable-id') {
                             this.deviceId = this.generateDeviceId();
                             this.deviceIdEl.textContent = this.deviceId;
+                            this.log(`🔄 Retrying with new ID: ${this.deviceId}`, 'warning');
                             setTimeout(() => this.initializePeer(), 1000);
                         }
                     });
 
                     this.peer.on('disconnected', () => {
-                        console.log('❌ PeerJS disconnected');
+                        this.log('❌ PeerJS disconnected', 'error');
                         this.serverStatus.textContent = 'Disconnected';
-                        this.serverDot.className = 'dot disconnected';
                         this.peerReady = false;
                         this.updateStatus('offline');
-                        
-                        setTimeout(() => {
-                            if (this.peer) {
-                                this.peer.reconnect();
-                            }
-                        }, 3000);
+                        setTimeout(() => { if (this.peer) this.peer.reconnect(); }, 3000);
                     });
 
                 } catch (error) {
-                    console.error('Peer initialization error:', error);
-                    this.serverStatus.textContent = 'Failed to initialize';
-                    this.serverDot.className = 'dot disconnected';
-                    this.showToast('Failed to initialize PeerJS', 'error');
+                    this.log(`❌ Failed to initialize: ${error.message}`, 'error');
+                    this.serverStatus.textContent = 'Failed';
+                    this.showToast('Failed to initialize', 'error');
                 }
             }
 
@@ -1040,69 +337,35 @@
                 return id;
             }
 
-            generateQRCode() {
-                try {
-                    const qrData = JSON.stringify({
-                        type: 'file-transfer',
-                        deviceId: this.deviceId,
-                        timestamp: Date.now()
-                    });
-                    
-                    this.qrCodeContainer.innerHTML = '';
-                    new QRCode(this.qrCodeContainer, {
-                        text: qrData,
-                        width: 200,
-                        height: 200,
-                        colorDark: '#1F2937',
-                        colorLight: '#FFFFFF',
-                        correctLevel: QRCode.CorrectLevel.H
-                    });
-                } catch (e) {
-                    console.error('QR Code error:', e);
-                    this.qrCodeContainer.innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-qrcode"></i>
-                            <p>Device ID: ${this.deviceId}</p>
-                        </div>
-                    `;
-                }
-            }
-
-            // ============================================
-            // CONNECTION HANDLING
-            // ============================================
-
+            // -------- CONNECTION --------
             connectToDevice() {
                 const targetId = this.targetDeviceId.value.trim().toUpperCase();
                 if (!targetId) {
                     this.showToast('Please enter a device ID', 'warning');
                     return;
                 }
-
                 if (targetId === this.deviceId) {
                     this.showToast('Cannot connect to yourself!', 'error');
                     return;
                 }
-
                 if (!this.peerReady) {
-                    this.showToast('Peer is not ready yet. Please wait.', 'warning');
+                    this.showToast('Peer not ready. Please wait.', 'warning');
                     return;
                 }
 
+                this.log(`🔗 Connecting to ${targetId}...`, 'info');
                 this.showToast(`Connecting to ${targetId}...`, 'warning');
                 this.connectBtn.disabled = true;
-                this.connectBtn.innerHTML = '<span class="spinner"></span> Connecting...';
+                this.connectBtn.innerHTML = '<span class="spinner">⏳</span> Connecting...';
 
                 try {
                     const conn = this.peer.connect(targetId, {
                         reliable: true,
                         metadata: { deviceId: this.deviceId }
                     });
-
                     this.handleConnection(conn);
-
                 } catch (error) {
-                    console.error('Connection error:', error);
+                    this.log(`❌ Connection error: ${error.message}`, 'error');
                     this.showToast('Connection failed: ' + error.message, 'error');
                 } finally {
                     this.connectBtn.disabled = false;
@@ -1112,28 +375,31 @@
 
             handleConnection(conn) {
                 const peerId = conn.peer;
+                this.log(`🔗 Handling connection from ${peerId}`, 'info');
 
                 conn.on('open', () => {
-                    console.log('✅ Connection opened with:', peerId);
+                    this.log(`✅ Connection OPEN with ${peerId}`, 'success');
                     this.currentConnection = peerId;
                     this.isConnected = true;
                     this.connections[peerId] = conn;
                     
                     this.updateStatus('online');
                     this.updateConnectionStatus(`Connected to ${peerId}`, true);
-                    this.showToast(`Connected to ${peerId}!`, 'success');
+                    this.showToast(`✅ Connected to ${peerId}!`, 'success');
                     
                     if (this.fileQueue.length > 0) {
+                        this.log(`📤 Sending pending files...`, 'info');
                         this.sendNextFile();
                     }
                 });
 
                 conn.on('data', (data) => {
+                    this.log(`📨 Received data from ${peerId} (${data.byteLength || data.length} bytes)`, 'info');
                     this.handleData(conn, data);
                 });
 
                 conn.on('close', () => {
-                    console.log('❌ Connection closed with:', peerId);
+                    this.log(`❌ Connection CLOSED with ${peerId}`, 'error');
                     if (this.currentConnection === peerId) {
                         this.isConnected = false;
                         this.currentConnection = null;
@@ -1144,23 +410,22 @@
                 });
 
                 conn.on('error', (error) => {
-                    console.error('Connection error:', error);
-                    this.showToast('Connection error: ' + error.message, 'error');
+                    this.log(`❌ Connection error with ${peerId}: ${error.message}`, 'error');
+                    this.showToast('Connection error', 'error');
                 });
 
                 this.connections[peerId] = conn;
             }
 
-            // ============================================
-            // DATA HANDLING - AUTO DOWNLOAD
-            // ============================================
-
+            // -------- DATA HANDLING --------
             handleData(conn, data) {
                 try {
+                    // Try to parse as JSON
                     const parsed = JSON.parse(data);
+                    this.log(`📨 Parsed JSON: ${parsed.type}`, 'info');
                     
                     if (parsed.type === 'file-start') {
-                        console.log('📥 Starting to receive file:', parsed.name);
+                        this.log(`📥 File transfer START: ${parsed.name} (${parsed.size} bytes, ${parsed.totalChunks} chunks)`, 'info');
                         this.isReceiving = true;
                         this.pendingFileData[parsed.id] = {
                             name: parsed.name,
@@ -1173,18 +438,19 @@
                             timestamp: new Date().toISOString()
                         };
                         this.showToast(`Receiving: ${parsed.name}`, 'success');
+                        this.log(`📥 Receiving file: ${parsed.name}`, 'success');
                         
                     } else if (parsed.type === 'file-complete') {
-                        console.log('✅ File receive complete:', parsed.id);
+                        this.log(`📥 File transfer COMPLETE: ${parsed.id}`, 'success');
                         const fileData = this.pendingFileData[parsed.id];
                         if (fileData) {
-                            // Combine all chunks
+                            this.log(`📊 Received ${fileData.receivedChunks}/${fileData.totalChunks} chunks`, 'info');
+                            
+                            // Combine chunks
                             const blob = new Blob(fileData.chunks, { type: fileData.type || 'application/octet-stream' });
+                            this.log(`📦 Blob created: ${blob.size} bytes`, 'success');
                             
-                            // AUTO-DOWNLOAD THE FILE
-                            this.autoDownloadFile(blob, fileData.name);
-                            
-                            // Store in received files
+                            // Store the file
                             const receivedFile = {
                                 id: 'file_' + Date.now(),
                                 name: fileData.name,
@@ -1196,14 +462,20 @@
                             };
                             
                             this.receivedFiles.push(receivedFile);
-                            this.updateReceivedFilesList();
-                            this.saveReceivedFiles();
-                            this.addToHistory('received', fileData.name, fileData.size);
+                            this.log(`💾 File stored: ${fileData.name} (${this.receivedFiles.length} total)`, 'success');
                             
+                            // AUTO-DOWNLOAD
+                            this.autoDownloadFile(blob, fileData.name);
+                            
+                            this.updateReceivedFilesList();
+                            this.addToHistory('received', fileData.name, fileData.size);
                             this.showToast(`✅ Received: ${fileData.name}`, 'success');
+                            this.log(`✅ File received and saved: ${fileData.name}`, 'success');
                             
                             delete this.pendingFileData[parsed.id];
                             this.isReceiving = false;
+                        } else {
+                            this.log(`⚠️ No pending data for ID: ${parsed.id}`, 'warning');
                         }
                     }
                     
@@ -1220,47 +492,42 @@
                                 
                                 const progress = Math.round((fileData.receivedChunks / fileData.totalChunks) * 100);
                                 if (progress % 10 === 0) {
-                                    console.log(`📊 Receiving ${fileData.name}: ${progress}%`);
+                                    this.log(`📊 Receiving ${fileData.name}: ${progress}% (${fileData.receivedChunks}/${fileData.totalChunks})`, 'info');
                                 }
                             }
                         }
+                    } else {
+                        this.log(`⚠️ Received binary data but not receiving`, 'warning');
                     }
                 }
             }
 
             autoDownloadFile(blob, filename) {
                 try {
-                    console.log('⬇️ Auto-downloading:', filename);
+                    this.log(`⬇️ Auto-downloading: ${filename} (${blob.size} bytes)`, 'success');
                     
-                    // Create download link
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
                     a.download = filename;
                     document.body.appendChild(a);
-                    
-                    // Trigger download
                     a.click();
                     
-                    // Clean up
                     setTimeout(() => {
                         document.body.removeChild(a);
                         URL.revokeObjectURL(url);
+                        this.log(`✅ Download complete: ${filename}`, 'success');
                     }, 5000);
                     
-                    // Show notification
                     this.showToast(`⬇️ Downloading: ${filename}`, 'success');
                     
                 } catch (error) {
-                    console.error('Auto-download error:', error);
+                    this.log(`❌ Auto-download error: ${error.message}`, 'error');
                     this.showToast('Error downloading file', 'error');
                 }
             }
 
-            // ============================================
-            // FILE TRANSFER (SENDING)
-            // ============================================
-
+            // -------- SENDING --------
             addFilesToQueue(files) {
                 for (const file of files) {
                     this.fileQueue.push({
@@ -1272,29 +539,33 @@
                         status: 'pending',
                         progress: 0
                     });
+                    this.log(`📁 Added to queue: ${file.name} (${file.size} bytes)`, 'info');
                 }
                 this.updateFileList();
-                this.showToast(`Added ${files.length} file(s) to queue`, 'success');
+                this.showToast(`Added ${files.length} file(s)`, 'success');
                 
                 if (this.isConnected && this.currentConnection) {
                     this.sendNextFile();
                 } else {
-                    this.showToast('Connect to a device first to send files', 'warning');
+                    this.log('⚠️ Not connected, files will send when connected', 'warning');
                 }
             }
 
             async sendNextFile() {
                 if (!this.isConnected || !this.currentConnection) {
+                    this.log('⚠️ Cannot send: No connection', 'warning');
                     return;
                 }
 
                 const conn = this.connections[this.currentConnection];
                 if (!conn || conn.open === false) {
+                    this.log('⚠️ Cannot send: Connection not open', 'warning');
                     return;
                 }
 
                 const pendingFile = this.fileQueue.find(f => f.status === 'pending');
                 if (!pendingFile) {
+                    this.log('📭 No pending files', 'info');
                     return;
                 }
 
@@ -1306,7 +577,7 @@
                     const chunkSize = 16384;
                     const totalChunks = Math.ceil(fileData.byteLength / chunkSize);
                     
-                    console.log(`📤 Sending ${pendingFile.name} (${totalChunks} chunks)`);
+                    this.log(`📤 Sending ${pendingFile.name} (${fileData.byteLength} bytes, ${totalChunks} chunks)`, 'info');
                     
                     const metadata = {
                         type: 'file-start',
@@ -1318,6 +589,7 @@
                     };
                     
                     conn.send(JSON.stringify(metadata));
+                    this.log(`📤 Sent metadata for ${pendingFile.name}`, 'info');
                     
                     for (let i = 0; i < totalChunks; i++) {
                         const start = i * chunkSize;
@@ -1329,6 +601,10 @@
                         pendingFile.progress = ((i + 1) / totalChunks) * 100;
                         this.updateFileList();
                         
+                        if (i % 10 === 0) {
+                            this.log(`📤 Sent chunk ${i+1}/${totalChunks}`, 'info');
+                        }
+                        
                         await new Promise(r => setTimeout(r, 1));
                     }
                     
@@ -1337,6 +613,7 @@
                         id: pendingFile.id
                     };
                     conn.send(JSON.stringify(completion));
+                    this.log(`📤 Sent completion for ${pendingFile.name}`, 'success');
                     
                     pendingFile.status = 'completed';
                     pendingFile.progress = 100;
@@ -1344,14 +621,15 @@
                     
                     this.addToHistory('sent', pendingFile.name, pendingFile.size);
                     this.showToast(`✅ Sent: ${pendingFile.name}`, 'success');
+                    this.log(`✅ File sent: ${pendingFile.name}`, 'success');
                     
                     setTimeout(() => this.sendNextFile(), 500);
                     
                 } catch (error) {
-                    console.error('Send error:', error);
+                    this.log(`❌ Send error: ${error.message}`, 'error');
                     pendingFile.status = 'error';
                     this.updateFileList();
-                    this.showToast('Error sending file: ' + error.message, 'error');
+                    this.showToast('Error sending file', 'error');
                 }
             }
 
@@ -1364,45 +642,53 @@
                 });
             }
 
-            // ============================================
-            // RECEIVED FILES
-            // ============================================
+            // -------- UI UPDATES --------
+            updateFileList() {
+                const container = this.fileList;
+                if (this.fileQueue.length === 0) {
+                    container.innerHTML = `<div style="text-align:center;padding:20px;color:#6B7280;"><i class="fas fa-inbox" style="font-size:2rem;display:block;margin-bottom:10px;"></i><p>No files in queue</p></div>`;
+                    this.queueCount.textContent = '(0)';
+                    return;
+                }
+
+                container.innerHTML = this.fileQueue.map((item) => `
+                    <div class="file-item">
+                        <div class="info">
+                            <span style="font-size:1.5rem;color:#4F46E5;"><i class="fas ${this.getFileIcon(item.name)}"></i></span>
+                            <div style="flex:1;min-width:0;">
+                                <div class="name">${item.name}</div>
+                                <div class="size">${this.formatSize(item.size)}</div>
+                            </div>
+                        </div>
+                        <div class="progress"><div class="fill" style="width:${item.progress || 0}%"></div></div>
+                        <span class="status status-${item.status}">${item.status}</span>
+                    </div>
+                `).join('');
+                this.queueCount.textContent = `(${this.fileQueue.length})`;
+            }
 
             updateReceivedFilesList() {
                 const container = this.receivedFilesList;
-                
                 if (this.receivedFiles.length === 0) {
-                    container.innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-inbox"></i>
-                            <p>No received files yet</p>
-                            <p style="font-size:0.8rem;">Files will auto-download when received</p>
-                        </div>
-                    `;
+                    container.innerHTML = `<div style="text-align:center;padding:20px;color:#6B7280;"><i class="fas fa-inbox" style="font-size:2rem;display:block;margin-bottom:10px;"></i><p>No received files yet</p></div>`;
                     this.receivedCount.textContent = '(0)';
                     this.receivedBadge.style.display = 'none';
                     return;
                 }
 
                 container.innerHTML = this.receivedFiles.map((file, index) => `
-                    <div class="received-file-item">
-                        <div class="file-info">
-                            <span class="file-icon">
-                                <i class="fas ${this.getFileIcon(file.name)}"></i>
-                            </span>
+                    <div class="received-item">
+                        <div class="info">
+                            <span style="font-size:1.5rem;color:#10B981;"><i class="fas ${this.getFileIcon(file.name)}"></i></span>
                             <div style="flex:1;min-width:0;">
-                                <div class="file-name">${file.name}</div>
-                                <div class="file-size">${this.formatSize(file.size)}</div>
-                                <div class="file-time">Received: ${new Date(file.timestamp).toLocaleString()}</div>
+                                <div class="name">${file.name}</div>
+                                <div class="size">${this.formatSize(file.size)}</div>
+                                <div style="font-size:0.7rem;color:#6B7280;">Received: ${new Date(file.timestamp).toLocaleString()}</div>
                             </div>
                         </div>
-                        <div class="file-actions">
-                            <button class="btn btn-success btn-sm" onclick="app.downloadReceivedFile(${index})">
-                                <i class="fas fa-download"></i> Download Again
-                            </button>
-                            <button class="btn btn-danger btn-sm" onclick="app.deleteReceivedFile(${index})">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                            <button class="btn btn-success btn-sm" onclick="app.downloadReceivedFile(${index})"><i class="fas fa-download"></i> Download</button>
+                            <button class="btn btn-danger btn-sm" onclick="app.deleteReceivedFile(${index})"><i class="fas fa-trash"></i></button>
                         </div>
                     </div>
                 `).join('');
@@ -1415,8 +701,10 @@
             downloadReceivedFile(index) {
                 const file = this.receivedFiles[index];
                 if (file && file.blob) {
+                    this.log(`⬇️ Manual download: ${file.name}`, 'info');
                     this.autoDownloadFile(file.blob, file.name);
                 } else {
+                    this.log(`❌ File data missing for index ${index}`, 'error');
                     this.showToast('File data not available', 'error');
                 }
             }
@@ -1424,7 +712,7 @@
             deleteReceivedFile(index) {
                 this.receivedFiles.splice(index, 1);
                 this.updateReceivedFilesList();
-                this.saveReceivedFiles();
+                this.log(`🗑️ Deleted received file`, 'info');
                 this.showToast('File removed', 'warning');
             }
 
@@ -1432,115 +720,31 @@
                 if (this.receivedFiles.length === 0) return;
                 this.receivedFiles = [];
                 this.updateReceivedFilesList();
-                this.saveReceivedFiles();
-                this.showToast('All received files cleared', 'success');
-            }
-
-            saveReceivedFiles() {
-                try {
-                    const metadata = this.receivedFiles.map(f => ({
-                        id: f.id,
-                        name: f.name,
-                        size: f.size,
-                        type: f.type,
-                        timestamp: f.timestamp,
-                        from: f.from
-                    }));
-                    localStorage.setItem('receivedFilesMetadata', JSON.stringify(metadata));
-                } catch (e) {}
-            }
-
-            loadReceivedFiles() {
-                try {
-                    const data = localStorage.getItem('receivedFilesMetadata');
-                    if (data) {
-                        const metadata = JSON.parse(data);
-                        console.log('Loaded received files metadata:', metadata.length);
-                    }
-                } catch (e) {}
-            }
-
-            // ============================================
-            // UI UPDATES
-            // ============================================
-
-            updateFileList() {
-                const container = this.fileList;
-                
-                if (this.fileQueue.length === 0) {
-                    container.innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-inbox"></i>
-                            <p>No files in queue</p>
-                        </div>
-                    `;
-                    this.queueCount.textContent = '(0)';
-                    return;
-                }
-
-                container.innerHTML = this.fileQueue.map((item) => `
-                    <div class="file-item">
-                        <div class="file-info">
-                            <span class="file-icon">
-                                <i class="fas ${this.getFileIcon(item.name)}"></i>
-                            </span>
-                            <div style="flex:1;min-width:0;">
-                                <div class="file-name">${item.name}</div>
-                                <div class="file-size">${this.formatSize(item.size)}</div>
-                            </div>
-                        </div>
-                        <div class="file-progress">
-                            <div class="progress-fill" style="width:${item.progress || 0}%"></div>
-                        </div>
-                        <span class="file-status ${item.status}">${item.status}</span>
-                    </div>
-                `).join('');
-
-                this.queueCount.textContent = `(${this.fileQueue.length})`;
+                this.log(`🗑️ All received files cleared`, 'info');
+                this.showToast('All cleared', 'success');
             }
 
             getFileIcon(filename) {
                 const ext = filename.split('.').pop().toLowerCase();
                 const icons = {
-                    'pdf': 'fa-file-pdf',
-                    'doc': 'fa-file-word',
-                    'docx': 'fa-file-word',
-                    'xls': 'fa-file-excel',
-                    'xlsx': 'fa-file-excel',
-                    'ppt': 'fa-file-powerpoint',
-                    'pptx': 'fa-file-powerpoint',
-                    'jpg': 'fa-file-image',
-                    'jpeg': 'fa-file-image',
-                    'png': 'fa-file-image',
-                    'gif': 'fa-file-image',
-                    'svg': 'fa-file-image',
-                    'mp4': 'fa-file-video',
-                    'avi': 'fa-file-video',
-                    'mkv': 'fa-file-video',
-                    'mp3': 'fa-file-audio',
-                    'wav': 'fa-file-audio',
-                    'zip': 'fa-file-archive',
-                    'rar': 'fa-file-archive',
-                    '7z': 'fa-file-archive',
-                    'js': 'fa-file-code',
-                    'html': 'fa-file-code',
-                    'css': 'fa-file-code',
-                    'json': 'fa-file-code',
-                    'py': 'fa-file-code',
-                    'java': 'fa-file-code'
+                    'pdf': 'fa-file-pdf', 'doc': 'fa-file-word', 'docx': 'fa-file-word',
+                    'xls': 'fa-file-excel', 'xlsx': 'fa-file-excel', 'ppt': 'fa-file-powerpoint',
+                    'pptx': 'fa-file-powerpoint', 'jpg': 'fa-file-image', 'jpeg': 'fa-file-image',
+                    'png': 'fa-file-image', 'gif': 'fa-file-image', 'svg': 'fa-file-image',
+                    'mp4': 'fa-file-video', 'avi': 'fa-file-video', 'mkv': 'fa-file-video',
+                    'mp3': 'fa-file-audio', 'wav': 'fa-file-audio', 'zip': 'fa-file-archive',
+                    'rar': 'fa-file-archive', '7z': 'fa-file-archive',
+                    'js': 'fa-file-code', 'html': 'fa-file-code', 'css': 'fa-file-code',
+                    'json': 'fa-file-code', 'py': 'fa-file-code', 'java': 'fa-file-code'
                 };
                 return icons[ext] || 'fa-file';
             }
 
             updateStatus(status) {
                 this.statusBadge.className = 'status-badge ' + status;
-                if (status === 'online') {
-                    this.statusBadge.innerHTML = '<i class="fas fa-circle"></i> Online';
-                } else if (status === 'connecting') {
-                    this.statusBadge.innerHTML = '<i class="fas fa-circle"></i> Connecting...';
-                } else {
-                    this.statusBadge.innerHTML = '<i class="fas fa-circle"></i> Offline';
-                }
+                this.statusBadge.innerHTML = status === 'online' ? '<i class="fas fa-circle"></i> Online' :
+                                             status === 'connecting' ? '<i class="fas fa-circle"></i> Connecting...' :
+                                             '<i class="fas fa-circle"></i> Offline';
             }
 
             updateConnectionStatus(text, connected) {
@@ -1549,102 +753,26 @@
                 
                 if (connected) {
                     this.connectionInfo.innerHTML = `
-                        <div class="device-item active">
-                            <div>
-                                <div class="device-name"><i class="fas fa-check-circle" style="color:var(--success);"></i> Connected to ${this.currentConnection}</div>
-                                <div class="device-time">File transfer ready</div>
-                            </div>
-                            <button class="btn btn-danger btn-sm" onclick="disconnectDevice()">
-                                <i class="fas fa-unlink"></i> Disconnect
-                            </button>
+                        <div style="display:flex;align-items:center;justify-content:space-between;padding:15px;background:#F0FDF4;border-radius:8px;border:2px solid #10B981;flex-wrap:wrap;gap:10px;">
+                            <div><div style="font-weight:500;"><i class="fas fa-check-circle" style="color:#10B981;"></i> Connected to ${this.currentConnection}</div><div style="font-size:0.8rem;color:#6B7280;">File transfer ready</div></div>
+                            <button class="btn btn-danger btn-sm" onclick="disconnectDevice()"><i class="fas fa-unlink"></i> Disconnect</button>
                         </div>
                     `;
                 } else {
-                    this.connectionInfo.innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-link"></i>
-                            <p>No active connection</p>
-                            <p style="font-size:0.8rem;">Enter a Device ID to connect</p>
-                        </div>
-                    `;
+                    this.connectionInfo.innerHTML = `<div style="text-align:center;padding:20px;color:#6B7280;"><i class="fas fa-link" style="font-size:2rem;display:block;margin-bottom:10px;"></i><p>No active connection</p></div>`;
                 }
             }
 
-            // ============================================
-            // HISTORY
-            // ============================================
-
+            // -------- HISTORY --------
             addToHistory(type, filename, size) {
-                const entry = {
-                    id: Date.now(),
-                    type: type,
-                    filename: filename,
-                    size: size,
-                    timestamp: new Date().toISOString()
-                };
-                this.transferHistory.unshift(entry);
-                this.saveHistory();
-                this.updateHistory();
-            }
-
-            updateHistory() {
-                const container = this.historyList;
-                
-                if (this.transferHistory.length === 0) {
-                    container.innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-history"></i>
-                            <p>No transfer history</p>
-                        </div>
-                    `;
-                    return;
-                }
-
-                container.innerHTML = this.transferHistory.map(item => `
-                    <div class="transfer-item" style="display:flex;align-items:center;justify-content:space-between;padding:10px 15px;border-bottom:1px solid #F3F4F6;flex-wrap:wrap;gap:10px;">
-                        <div style="display:flex;align-items:center;gap:10px;">
-                            <span style="font-size:1.2rem;color:${item.type === 'sent' ? 'var(--primary)' : 'var(--success)'};">
-                                <i class="fas ${item.type === 'sent' ? 'fa-arrow-up' : 'fa-arrow-down'}"></i>
-                            </span>
-                            <div>
-                                <div style="font-weight:500;">${item.filename}</div>
-                                <div style="font-size:0.8rem;color:var(--text-light);">
-                                    ${this.formatSize(item.size)} • ${item.type} • ${new Date(item.timestamp).toLocaleString()}
-                                </div>
-                            </div>
-                        </div>
-                        <span class="file-status ${item.type === 'sent' ? 'completed' : 'received'}">${item.type}</span>
-                    </div>
-                `).join('');
-            }
-
-            saveHistory() {
                 try {
-                    localStorage.setItem('fileTransferHistory', JSON.stringify(this.transferHistory));
+                    let history = JSON.parse(localStorage.getItem('fileTransferHistory') || '[]');
+                    history.unshift({ id: Date.now(), type, filename, size, timestamp: new Date().toISOString() });
+                    localStorage.setItem('fileTransferHistory', JSON.stringify(history));
                 } catch (e) {}
             }
 
-            loadHistory() {
-                try {
-                    const data = localStorage.getItem('fileTransferHistory');
-                    if (data) {
-                        this.transferHistory = JSON.parse(data);
-                        this.updateHistory();
-                    }
-                } catch (e) {}
-            }
-
-            clearHistory() {
-                this.transferHistory = [];
-                this.saveHistory();
-                this.updateHistory();
-                this.showToast('History cleared', 'success');
-            }
-
-            // ============================================
-            // UTILITY FUNCTIONS
-            // ============================================
-
+            // -------- UTILITY --------
             formatSize(bytes) {
                 if (bytes === 0) return '0 B';
                 const k = 1024;
@@ -1658,16 +786,14 @@
                 toast.textContent = message;
                 toast.className = 'toast ' + type;
                 toast.classList.add('show');
-
                 clearTimeout(this.toastTimeout);
-                this.toastTimeout = setTimeout(() => {
-                    toast.classList.remove('show');
-                }, 3000);
+                this.toastTimeout = setTimeout(() => toast.classList.remove('show'), 3000);
             }
 
             copyDeviceId() {
                 navigator.clipboard.writeText(this.deviceId).then(() => {
                     this.showToast('Device ID copied!', 'success');
+                    this.log('📋 Device ID copied', 'info');
                 }).catch(() => {
                     const input = document.createElement('input');
                     input.value = this.deviceId;
@@ -1682,20 +808,19 @@
             disconnect() {
                 if (this.currentConnection) {
                     const conn = this.connections[this.currentConnection];
-                    if (conn) {
-                        conn.close();
-                    }
+                    if (conn) conn.close();
                     delete this.connections[this.currentConnection];
                     this.isConnected = false;
                     this.currentConnection = null;
                     this.updateConnectionStatus('Not connected', false);
                     this.showToast('Disconnected', 'warning');
+                    this.log('🔌 Disconnected', 'info');
                 }
             }
         }
 
         // ============================================
-        // GLOBAL FUNCTIONS
+        // GLOBAL
         // ============================================
 
         let app;
@@ -1706,8 +831,8 @@
             window.copyDeviceId = () => app.copyDeviceId();
             window.connectToDevice = () => app.connectToDevice();
             window.disconnectDevice = () => app.disconnect();
-            window.clearHistory = () => app.clearHistory();
             window.clearReceivedFiles = () => app.clearReceivedFiles();
+            window.clearDebug = () => app.clearDebug();
         }
 
         document.addEventListener('DOMContentLoaded', initApp);
