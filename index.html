@@ -610,6 +610,21 @@
             height: 100% !important;
         }
 
+        .auto-download-banner {
+            background: #DBEAFE;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #1E40AF;
+        }
+
+        .auto-download-banner i {
+            font-size: 1.2rem;
+        }
+
         @media (max-width: 768px) {
             body {
                 padding: 10px;
@@ -779,6 +794,10 @@
                     <i class="fas fa-upload"></i> Send Files
                     <span id="connectionStatusSend" style="font-size:0.8rem;color:var(--text-light);margin-left:10px;">(Not connected)</span>
                 </div>
+                <div class="auto-download-banner">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Files will be auto-downloaded on the receiving device!</span>
+                </div>
                 <div class="file-drop-zone" id="dropZone">
                     <i class="fas fa-cloud-upload-alt"></i>
                     <p>Drop files here or click to browse</p>
@@ -810,11 +829,15 @@
                         <i class="fas fa-trash"></i> Clear All
                     </button>
                 </div>
+                <div class="auto-download-banner">
+                    <i class="fas fa-download"></i>
+                    <span>Files are automatically downloaded when received!</span>
+                </div>
                 <div class="received-files-list" id="receivedFilesList">
                     <div class="empty-state">
                         <i class="fas fa-inbox"></i>
                         <p>No received files yet</p>
-                        <p style="font-size:0.8rem;">Files you receive will appear here with download buttons</p>
+                        <p style="font-size:0.8rem;">Files you receive will auto-download</p>
                     </div>
                 </div>
             </div>
@@ -842,7 +865,7 @@
 
     <script>
         // ============================================
-        // COMPLETE FILE TRANSFER - FINAL FIXED VERSION
+        // FILE TRANSFER - AUTO DOWNLOAD FIXED
         // ============================================
 
         class FileTransferApp {
@@ -1129,7 +1152,7 @@
             }
 
             // ============================================
-            // DATA HANDLING - FIXED RECEIVED FILES
+            // DATA HANDLING - AUTO DOWNLOAD
             // ============================================
 
             handleData(conn, data) {
@@ -1155,39 +1178,30 @@
                         console.log('✅ File receive complete:', parsed.id);
                         const fileData = this.pendingFileData[parsed.id];
                         if (fileData) {
-                            // Combine all chunks into a single Blob
+                            // Combine all chunks
                             const blob = new Blob(fileData.chunks, { type: fileData.type || 'application/octet-stream' });
                             
-                            // Create a unique ID for this file
-                            const fileId = 'file_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+                            // AUTO-DOWNLOAD THE FILE
+                            this.autoDownloadFile(blob, fileData.name);
                             
-                            // Store the received file
+                            // Store in received files
                             const receivedFile = {
-                                id: fileId,
+                                id: 'file_' + Date.now(),
                                 name: fileData.name,
                                 size: fileData.size,
-                                type: fileData.type || 'application/octet-stream',
+                                type: fileData.type,
                                 blob: blob,
                                 timestamp: fileData.timestamp,
-                                from: fileData.from,
-                                url: URL.createObjectURL(blob)
+                                from: fileData.from
                             };
                             
-                            // Add to received files list
                             this.receivedFiles.push(receivedFile);
-                            this.receivedFileCounter++;
-                            
-                            // Update UI
                             this.updateReceivedFilesList();
                             this.saveReceivedFiles();
-                            
-                            // Add to history
                             this.addToHistory('received', fileData.name, fileData.size);
                             
-                            // Show success message
                             this.showToast(`✅ Received: ${fileData.name}`, 'success');
                             
-                            // Clean up
                             delete this.pendingFileData[parsed.id];
                             this.isReceiving = false;
                         }
@@ -1204,16 +1218,42 @@
                                 fileData.chunks.push(data);
                                 fileData.receivedChunks++;
                                 
-                                // Update progress (optional)
                                 const progress = Math.round((fileData.receivedChunks / fileData.totalChunks) * 100);
-                                console.log(`📊 Receiving ${fileData.name}: ${progress}%`);
-                                
-                                if (progress === 100) {
-                                    console.log('✅ All chunks received, waiting for completion signal...');
+                                if (progress % 10 === 0) {
+                                    console.log(`📊 Receiving ${fileData.name}: ${progress}%`);
                                 }
                             }
                         }
                     }
+                }
+            }
+
+            autoDownloadFile(blob, filename) {
+                try {
+                    console.log('⬇️ Auto-downloading:', filename);
+                    
+                    // Create download link
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    
+                    // Trigger download
+                    a.click();
+                    
+                    // Clean up
+                    setTimeout(() => {
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                    }, 5000);
+                    
+                    // Show notification
+                    this.showToast(`⬇️ Downloading: ${filename}`, 'success');
+                    
+                } catch (error) {
+                    console.error('Auto-download error:', error);
+                    this.showToast('Error downloading file', 'error');
                 }
             }
 
@@ -1263,12 +1303,11 @@
                     this.updateFileList();
 
                     const fileData = await this.readFileAsArrayBuffer(pendingFile.file);
-                    const chunkSize = 16384; // 16KB chunks
+                    const chunkSize = 16384;
                     const totalChunks = Math.ceil(fileData.byteLength / chunkSize);
                     
                     console.log(`📤 Sending ${pendingFile.name} (${totalChunks} chunks)`);
                     
-                    // Send metadata
                     const metadata = {
                         type: 'file-start',
                         id: pendingFile.id,
@@ -1280,7 +1319,6 @@
                     
                     conn.send(JSON.stringify(metadata));
                     
-                    // Send chunks
                     for (let i = 0; i < totalChunks; i++) {
                         const start = i * chunkSize;
                         const end = Math.min(start + chunkSize, fileData.byteLength);
@@ -1291,11 +1329,9 @@
                         pendingFile.progress = ((i + 1) / totalChunks) * 100;
                         this.updateFileList();
                         
-                        // Small delay to prevent flooding
                         await new Promise(r => setTimeout(r, 1));
                     }
                     
-                    // Send completion signal
                     const completion = {
                         type: 'file-complete',
                         id: pendingFile.id
@@ -1309,7 +1345,6 @@
                     this.addToHistory('sent', pendingFile.name, pendingFile.size);
                     this.showToast(`✅ Sent: ${pendingFile.name}`, 'success');
                     
-                    // Send next file
                     setTimeout(() => this.sendNextFile(), 500);
                     
                 } catch (error) {
@@ -1330,7 +1365,7 @@
             }
 
             // ============================================
-            // RECEIVED FILES - DISPLAY WITH DOWNLOAD
+            // RECEIVED FILES
             // ============================================
 
             updateReceivedFilesList() {
@@ -1341,7 +1376,7 @@
                         <div class="empty-state">
                             <i class="fas fa-inbox"></i>
                             <p>No received files yet</p>
-                            <p style="font-size:0.8rem;">Files you receive will appear here with download buttons</p>
+                            <p style="font-size:0.8rem;">Files will auto-download when received</p>
                         </div>
                     `;
                     this.receivedCount.textContent = '(0)';
@@ -1363,7 +1398,7 @@
                         </div>
                         <div class="file-actions">
                             <button class="btn btn-success btn-sm" onclick="app.downloadReceivedFile(${index})">
-                                <i class="fas fa-download"></i> Download
+                                <i class="fas fa-download"></i> Download Again
                             </button>
                             <button class="btn btn-danger btn-sm" onclick="app.deleteReceivedFile(${index})">
                                 <i class="fas fa-trash"></i>
@@ -1380,50 +1415,21 @@
             downloadReceivedFile(index) {
                 const file = this.receivedFiles[index];
                 if (file && file.blob) {
-                    // Create a download link
-                    const url = URL.createObjectURL(file.blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = file.name;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    
-                    // Revoke the URL after a delay
-                    setTimeout(() => {
-                        URL.revokeObjectURL(url);
-                    }, 5000);
-                    
-                    this.showToast(`Downloading: ${file.name}`, 'success');
+                    this.autoDownloadFile(file.blob, file.name);
                 } else {
                     this.showToast('File data not available', 'error');
                 }
             }
 
             deleteReceivedFile(index) {
-                const file = this.receivedFiles[index];
-                if (file) {
-                    // Revoke the object URL to free memory
-                    if (file.url) {
-                        URL.revokeObjectURL(file.url);
-                    }
-                    this.receivedFiles.splice(index, 1);
-                    this.updateReceivedFilesList();
-                    this.saveReceivedFiles();
-                    this.showToast('File removed', 'warning');
-                }
+                this.receivedFiles.splice(index, 1);
+                this.updateReceivedFilesList();
+                this.saveReceivedFiles();
+                this.showToast('File removed', 'warning');
             }
 
             clearReceivedFiles() {
                 if (this.receivedFiles.length === 0) return;
-                
-                // Revoke all object URLs
-                this.receivedFiles.forEach(file => {
-                    if (file.url) {
-                        URL.revokeObjectURL(file.url);
-                    }
-                });
-                
                 this.receivedFiles = [];
                 this.updateReceivedFilesList();
                 this.saveReceivedFiles();
@@ -1432,8 +1438,6 @@
 
             saveReceivedFiles() {
                 try {
-                    // We can't save blobs to localStorage, but we can save metadata
-                    // The actual blobs are kept in memory during the session
                     const metadata = this.receivedFiles.map(f => ({
                         id: f.id,
                         name: f.name,
@@ -1443,9 +1447,7 @@
                         from: f.from
                     }));
                     localStorage.setItem('receivedFilesMetadata', JSON.stringify(metadata));
-                } catch (e) {
-                    console.log('Could not save received files metadata');
-                }
+                } catch (e) {}
             }
 
             loadReceivedFiles() {
@@ -1453,13 +1455,9 @@
                     const data = localStorage.getItem('receivedFilesMetadata');
                     if (data) {
                         const metadata = JSON.parse(data);
-                        // We can only restore metadata, not the actual file data
-                        // Files are kept in memory during session
                         console.log('Loaded received files metadata:', metadata.length);
                     }
-                } catch (e) {
-                    console.log('Could not load received files metadata');
-                }
+                } catch (e) {}
             }
 
             // ============================================
