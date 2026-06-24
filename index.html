@@ -262,15 +262,6 @@
             background: #DC2626;
         }
 
-        .btn-warning {
-            background: var(--warning);
-            color: white;
-        }
-
-        .btn-warning:hover:not(:disabled) {
-            background: #D97706;
-        }
-
         .btn-sm {
             padding: 6px 12px;
             font-size: 0.8rem;
@@ -409,104 +400,56 @@
             color: #065F46;
         }
 
-        .file-status.downloadable {
-            background: #DBEAFE;
-            color: #1E40AF;
-            cursor: pointer;
+        .received-files-list {
+            max-height: 400px;
+            overflow-y: auto;
         }
 
-        .file-status.downloadable:hover {
-            background: #BFDBFE;
-        }
-
-        .device-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .device-item {
+        .received-file-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 15px;
-            background: #F9FAFB;
+            padding: 12px 15px;
+            background: #F0FDF4;
             border-radius: 8px;
-            border: 2px solid transparent;
-            transition: all 0.3s;
+            margin-bottom: 8px;
+            border-left: 4px solid var(--success);
             flex-wrap: wrap;
             gap: 10px;
         }
 
-        .device-item.active {
-            border-color: var(--success);
-            background: #F0FDF4;
+        .received-file-item .file-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
+            min-width: 0;
         }
 
-        .device-item .device-name {
+        .received-file-item .file-icon {
+            font-size: 1.5rem;
+            color: var(--success);
+        }
+
+        .received-file-item .file-name {
             font-weight: 500;
+            word-break: break-all;
         }
 
-        .device-item .device-time {
+        .received-file-item .file-size {
             font-size: 0.8rem;
             color: var(--text-light);
         }
 
-        .transfer-item {
+        .received-file-item .file-time {
+            font-size: 0.7rem;
+            color: var(--text-light);
+        }
+
+        .received-file-item .file-actions {
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 15px;
-            border-bottom: 1px solid #F3F4F6;
+            gap: 8px;
             flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .transfer-item:last-child {
-            border-bottom: none;
-        }
-
-        .transfer-item .transfer-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .transfer-item .transfer-icon {
-            font-size: 1.2rem;
-        }
-
-        .transfer-item .transfer-icon.sent {
-            color: var(--primary);
-        }
-
-        .transfer-item .transfer-icon.received {
-            color: var(--success);
-        }
-
-        .qr-container {
-            display: flex;
-            justify-content: center;
-            padding: 20px;
-            background: white;
-            border-radius: 8px;
-        }
-
-        #qrCode {
-            width: 200px;
-            height: 200px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: white;
-            border: 2px solid #E5E7EB;
-            border-radius: 8px;
-            padding: 10px;
-        }
-
-        #qrCode canvas {
-            width: 100% !important;
-            height: 100% !important;
         }
 
         .tabs {
@@ -613,49 +556,17 @@
             opacity: 0.5;
         }
 
-        .received-files-list {
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .received-file-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 15px;
-            background: #F0FDF4;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            border-left: 4px solid var(--success);
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .received-file-item .file-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            flex: 1;
-            min-width: 0;
-        }
-
-        .received-file-item .file-icon {
-            font-size: 1.5rem;
-            color: var(--success);
-        }
-
-        .received-file-item .file-name {
-            font-weight: 500;
-        }
-
-        .received-file-item .file-size {
-            font-size: 0.8rem;
-            color: var(--text-light);
-        }
-
-        .received-file-item .file-time {
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
             font-size: 0.7rem;
-            color: var(--text-light);
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: #D1FAE5;
+            color: #065F46;
         }
 
         .connection-hint {
@@ -674,22 +585,29 @@
             font-size: 1.2rem;
         }
 
-        .badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.7rem;
-            font-weight: 600;
+        .qr-container {
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
         }
 
-        .badge-success {
-            background: #D1FAE5;
-            color: #065F46;
+        #qrCode {
+            width: 200px;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border: 2px solid #E5E7EB;
+            border-radius: 8px;
+            padding: 10px;
         }
 
-        .badge-warning {
-            background: #FEF3C7;
-            color: #92400E;
+        #qrCode canvas {
+            width: 100% !important;
+            height: 100% !important;
         }
 
         @media (max-width: 768px) {
@@ -746,6 +664,10 @@
             .file-item .file-name {
                 max-width: 120px;
             }
+
+            .received-file-item .file-name {
+                max-width: 120px;
+            }
         }
 
         ::-webkit-scrollbar {
@@ -768,7 +690,6 @@
 </head>
 <body>
     <div class="app-container">
-        <!-- Header -->
         <div class="header">
             <h1><i class="fas fa-exchange-alt"></i> File Transfer</h1>
             <p>Share files between devices instantly</p>
@@ -778,7 +699,6 @@
             </div>
         </div>
 
-        <!-- Device Info -->
         <div class="card">
             <div class="device-info">
                 <div style="flex:1;min-width:150px;">
@@ -794,7 +714,6 @@
             </div>
         </div>
 
-        <!-- Tabs -->
         <div class="tabs">
             <button class="tab active" data-tab="connect">
                 <i class="fas fa-plug"></i> Connect
@@ -811,7 +730,6 @@
             </button>
         </div>
 
-        <!-- Connect Tab -->
         <div class="tab-content active" id="connectTab">
             <div class="card">
                 <div class="card-title">
@@ -855,7 +773,6 @@
             </div>
         </div>
 
-        <!-- Send Tab -->
         <div class="tab-content" id="sendTab">
             <div class="card">
                 <div class="card-title">
@@ -884,7 +801,6 @@
             </div>
         </div>
 
-        <!-- Received Tab -->
         <div class="tab-content" id="receivedTab">
             <div class="card">
                 <div class="card-title">
@@ -894,17 +810,16 @@
                         <i class="fas fa-trash"></i> Clear All
                     </button>
                 </div>
-                <div id="receivedFilesList">
+                <div class="received-files-list" id="receivedFilesList">
                     <div class="empty-state">
                         <i class="fas fa-inbox"></i>
                         <p>No received files yet</p>
-                        <p style="font-size:0.8rem;">Files you receive will appear here</p>
+                        <p style="font-size:0.8rem;">Files you receive will appear here with download buttons</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- History Tab -->
         <div class="tab-content" id="historyTab">
             <div class="card">
                 <div class="card-title">
@@ -923,12 +838,11 @@
         </div>
     </div>
 
-    <!-- Toast -->
     <div id="toast" class="toast"></div>
 
     <script>
         // ============================================
-        // COMPLETE FILE TRANSFER WITH RECEIVED FILES
+        // COMPLETE FILE TRANSFER - FINAL FIXED VERSION
         // ============================================
 
         class FileTransferApp {
@@ -941,10 +855,10 @@
                 this.currentConnection = null;
                 this.isConnected = false;
                 this.deviceId = '';
-                this.receivedChunks = {};
                 this.pendingFileData = {};
                 this.isReceiving = false;
                 this.peerReady = false;
+                this.receivedFileCounter = 0;
                 
                 this.initializeElements();
                 this.initializeEventListeners();
@@ -973,7 +887,6 @@
                 this.connectionStatusSend = document.getElementById('connectionStatusSend');
                 this.connectionInfo = document.getElementById('connectionInfo');
                 
-                // Tabs
                 document.querySelectorAll('.tab').forEach(tab => {
                     tab.addEventListener('click', () => {
                         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -985,7 +898,6 @@
             }
 
             initializeEventListeners() {
-                // File input
                 this.fileInput.addEventListener('change', (e) => {
                     if (e.target.files.length > 0) {
                         this.addFilesToQueue(e.target.files);
@@ -993,7 +905,6 @@
                     }
                 });
 
-                // Drag and drop
                 this.dropZone.addEventListener('dragover', (e) => {
                     e.preventDefault();
                     this.dropZone.classList.add('dragover');
@@ -1016,7 +927,6 @@
                     this.fileInput.click();
                 });
 
-                // Enter key for connect
                 this.targetDeviceId.addEventListener('keypress', (e) => {
                     if (e.key === 'Enter') {
                         this.connectToDevice();
@@ -1227,11 +1137,12 @@
                     const parsed = JSON.parse(data);
                     
                     if (parsed.type === 'file-start') {
+                        console.log('📥 Starting to receive file:', parsed.name);
                         this.isReceiving = true;
                         this.pendingFileData[parsed.id] = {
                             name: parsed.name,
                             size: parsed.size,
-                            type: parsed.type,
+                            type: parsed.type || 'application/octet-stream',
                             totalChunks: parsed.totalChunks,
                             receivedChunks: 0,
                             chunks: [],
@@ -1239,43 +1150,51 @@
                             timestamp: new Date().toISOString()
                         };
                         this.showToast(`Receiving: ${parsed.name}`, 'success');
-                        this.updateStatus('online');
                         
                     } else if (parsed.type === 'file-complete') {
+                        console.log('✅ File receive complete:', parsed.id);
                         const fileData = this.pendingFileData[parsed.id];
                         if (fileData) {
-                            // Combine chunks
-                            const blob = new Blob(fileData.chunks, { type: fileData.type });
+                            // Combine all chunks into a single Blob
+                            const blob = new Blob(fileData.chunks, { type: fileData.type || 'application/octet-stream' });
                             
-                            // Store received file
+                            // Create a unique ID for this file
+                            const fileId = 'file_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+                            
+                            // Store the received file
                             const receivedFile = {
-                                id: parsed.id,
+                                id: fileId,
                                 name: fileData.name,
                                 size: fileData.size,
-                                type: fileData.type,
-                                data: blob,
+                                type: fileData.type || 'application/octet-stream',
+                                blob: blob,
                                 timestamp: fileData.timestamp,
-                                from: fileData.from
+                                from: fileData.from,
+                                url: URL.createObjectURL(blob)
                             };
                             
+                            // Add to received files list
                             this.receivedFiles.push(receivedFile);
-                            this.saveReceivedFiles();
-                            this.updateReceivedFilesList();
+                            this.receivedFileCounter++;
                             
-                            // Show notification
-                            this.showToast(`✅ Received: ${fileData.name}`, 'success');
+                            // Update UI
+                            this.updateReceivedFilesList();
+                            this.saveReceivedFiles();
+                            
+                            // Add to history
                             this.addToHistory('received', fileData.name, fileData.size);
                             
+                            // Show success message
+                            this.showToast(`✅ Received: ${fileData.name}`, 'success');
+                            
+                            // Clean up
                             delete this.pendingFileData[parsed.id];
                             this.isReceiving = false;
-                            
-                            // Auto-download (optional - uncomment to auto-download)
-                            // this.downloadReceivedFile(receivedFile);
                         }
                     }
                     
                 } catch (e) {
-                    // Binary data (file chunk)
+                    // Binary data - file chunk
                     if (this.isReceiving) {
                         const fileIds = Object.keys(this.pendingFileData);
                         if (fileIds.length > 0) {
@@ -1285,37 +1204,31 @@
                                 fileData.chunks.push(data);
                                 fileData.receivedChunks++;
                                 
-                                const progress = (fileData.receivedChunks / fileData.totalChunks) * 100;
-                                this.updateFileProgress(id, progress);
+                                // Update progress (optional)
+                                const progress = Math.round((fileData.receivedChunks / fileData.totalChunks) * 100);
+                                console.log(`📊 Receiving ${fileData.name}: ${progress}%`);
+                                
+                                if (progress === 100) {
+                                    console.log('✅ All chunks received, waiting for completion signal...');
+                                }
                             }
                         }
                     }
                 }
             }
 
-            downloadReceivedFile(file) {
-                const url = URL.createObjectURL(file.data);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = file.name;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                setTimeout(() => URL.revokeObjectURL(url), 1000);
-            }
-
             // ============================================
-            // FILE TRANSFER
+            // FILE TRANSFER (SENDING)
             // ============================================
 
             addFilesToQueue(files) {
                 for (const file of files) {
                     this.fileQueue.push({
-                        id: Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                        id: 'send_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
                         file: file,
                         name: file.name,
                         size: file.size,
-                        type: file.type,
+                        type: file.type || 'application/octet-stream',
                         status: 'pending',
                         progress: 0
                     });
@@ -1350,9 +1263,12 @@
                     this.updateFileList();
 
                     const fileData = await this.readFileAsArrayBuffer(pendingFile.file);
-                    const chunkSize = 16384;
+                    const chunkSize = 16384; // 16KB chunks
                     const totalChunks = Math.ceil(fileData.byteLength / chunkSize);
                     
+                    console.log(`📤 Sending ${pendingFile.name} (${totalChunks} chunks)`);
+                    
+                    // Send metadata
                     const metadata = {
                         type: 'file-start',
                         id: pendingFile.id,
@@ -1364,6 +1280,7 @@
                     
                     conn.send(JSON.stringify(metadata));
                     
+                    // Send chunks
                     for (let i = 0; i < totalChunks; i++) {
                         const start = i * chunkSize;
                         const end = Math.min(start + chunkSize, fileData.byteLength);
@@ -1374,9 +1291,11 @@
                         pendingFile.progress = ((i + 1) / totalChunks) * 100;
                         this.updateFileList();
                         
-                        await new Promise(r => setTimeout(r, 2));
+                        // Small delay to prevent flooding
+                        await new Promise(r => setTimeout(r, 1));
                     }
                     
+                    // Send completion signal
                     const completion = {
                         type: 'file-complete',
                         id: pendingFile.id
@@ -1388,8 +1307,9 @@
                     this.updateFileList();
                     
                     this.addToHistory('sent', pendingFile.name, pendingFile.size);
-                    this.showToast(`Sent: ${pendingFile.name}`, 'success');
+                    this.showToast(`✅ Sent: ${pendingFile.name}`, 'success');
                     
+                    // Send next file
                     setTimeout(() => this.sendNextFile(), 500);
                     
                 } catch (error) {
@@ -1409,25 +1329,19 @@
                 });
             }
 
-            updateFileProgress(id, progress) {
-                const file = this.fileQueue.find(f => f.id === id);
-                if (file) {
-                    file.progress = progress;
-                    this.updateFileList();
-                }
-            }
-
             // ============================================
-            // RECEIVED FILES - NEW
+            // RECEIVED FILES - DISPLAY WITH DOWNLOAD
             // ============================================
 
             updateReceivedFilesList() {
+                const container = this.receivedFilesList;
+                
                 if (this.receivedFiles.length === 0) {
-                    this.receivedFilesList.innerHTML = `
+                    container.innerHTML = `
                         <div class="empty-state">
                             <i class="fas fa-inbox"></i>
                             <p>No received files yet</p>
-                            <p style="font-size:0.8rem;">Files you receive will appear here</p>
+                            <p style="font-size:0.8rem;">Files you receive will appear here with download buttons</p>
                         </div>
                     `;
                     this.receivedCount.textContent = '(0)';
@@ -1435,20 +1349,20 @@
                     return;
                 }
 
-                this.receivedFilesList.innerHTML = this.receivedFiles.map((file, index) => `
+                container.innerHTML = this.receivedFiles.map((file, index) => `
                     <div class="received-file-item">
                         <div class="file-info">
                             <span class="file-icon">
                                 <i class="fas ${this.getFileIcon(file.name)}"></i>
                             </span>
-                            <div>
+                            <div style="flex:1;min-width:0;">
                                 <div class="file-name">${file.name}</div>
                                 <div class="file-size">${this.formatSize(file.size)}</div>
-                                <div class="file-time">Received: ${new Date(file.timestamp).toLocaleTimeString()}</div>
+                                <div class="file-time">Received: ${new Date(file.timestamp).toLocaleString()}</div>
                             </div>
                         </div>
-                        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                            <button class="btn btn-success btn-sm" onclick="app.downloadReceivedFileByIndex(${index})">
+                        <div class="file-actions">
+                            <button class="btn btn-success btn-sm" onclick="app.downloadReceivedFile(${index})">
                                 <i class="fas fa-download"></i> Download
                             </button>
                             <button class="btn btn-danger btn-sm" onclick="app.deleteReceivedFile(${index})">
@@ -1463,32 +1377,63 @@
                 this.receivedBadge.textContent = this.receivedFiles.length;
             }
 
-            downloadReceivedFileByIndex(index) {
+            downloadReceivedFile(index) {
                 const file = this.receivedFiles[index];
-                if (file) {
-                    this.downloadReceivedFile(file);
+                if (file && file.blob) {
+                    // Create a download link
+                    const url = URL.createObjectURL(file.blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = file.name;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    
+                    // Revoke the URL after a delay
+                    setTimeout(() => {
+                        URL.revokeObjectURL(url);
+                    }, 5000);
+                    
                     this.showToast(`Downloading: ${file.name}`, 'success');
+                } else {
+                    this.showToast('File data not available', 'error');
                 }
             }
 
             deleteReceivedFile(index) {
-                this.receivedFiles.splice(index, 1);
-                this.saveReceivedFiles();
-                this.updateReceivedFilesList();
-                this.showToast('File removed', 'warning');
+                const file = this.receivedFiles[index];
+                if (file) {
+                    // Revoke the object URL to free memory
+                    if (file.url) {
+                        URL.revokeObjectURL(file.url);
+                    }
+                    this.receivedFiles.splice(index, 1);
+                    this.updateReceivedFilesList();
+                    this.saveReceivedFiles();
+                    this.showToast('File removed', 'warning');
+                }
             }
 
             clearReceivedFiles() {
                 if (this.receivedFiles.length === 0) return;
+                
+                // Revoke all object URLs
+                this.receivedFiles.forEach(file => {
+                    if (file.url) {
+                        URL.revokeObjectURL(file.url);
+                    }
+                });
+                
                 this.receivedFiles = [];
-                this.saveReceivedFiles();
                 this.updateReceivedFilesList();
+                this.saveReceivedFiles();
                 this.showToast('All received files cleared', 'success');
             }
 
             saveReceivedFiles() {
                 try {
-                    // Can't store blobs in localStorage, so store metadata
+                    // We can't save blobs to localStorage, but we can save metadata
+                    // The actual blobs are kept in memory during the session
                     const metadata = this.receivedFiles.map(f => ({
                         id: f.id,
                         name: f.name,
@@ -1498,7 +1443,9 @@
                         from: f.from
                     }));
                     localStorage.setItem('receivedFilesMetadata', JSON.stringify(metadata));
-                } catch (e) {}
+                } catch (e) {
+                    console.log('Could not save received files metadata');
+                }
             }
 
             loadReceivedFiles() {
@@ -1506,12 +1453,13 @@
                     const data = localStorage.getItem('receivedFilesMetadata');
                     if (data) {
                         const metadata = JSON.parse(data);
-                        // We can't restore blobs from localStorage, so just show metadata
+                        // We can only restore metadata, not the actual file data
                         // Files are kept in memory during session
-                        this.receivedFiles = [];
-                        this.updateReceivedFilesList();
+                        console.log('Loaded received files metadata:', metadata.length);
                     }
-                } catch (e) {}
+                } catch (e) {
+                    console.log('Could not load received files metadata');
+                }
             }
 
             // ============================================
@@ -1519,8 +1467,10 @@
             // ============================================
 
             updateFileList() {
+                const container = this.fileList;
+                
                 if (this.fileQueue.length === 0) {
-                    this.fileList.innerHTML = `
+                    container.innerHTML = `
                         <div class="empty-state">
                             <i class="fas fa-inbox"></i>
                             <p>No files in queue</p>
@@ -1530,13 +1480,13 @@
                     return;
                 }
 
-                this.fileList.innerHTML = this.fileQueue.map((item) => `
+                container.innerHTML = this.fileQueue.map((item) => `
                     <div class="file-item">
                         <div class="file-info">
                             <span class="file-icon">
                                 <i class="fas ${this.getFileIcon(item.name)}"></i>
                             </span>
-                            <div>
+                            <div style="flex:1;min-width:0;">
                                 <div class="file-name">${item.name}</div>
                                 <div class="file-size">${this.formatSize(item.size)}</div>
                             </div>
@@ -1640,8 +1590,10 @@
             }
 
             updateHistory() {
+                const container = this.historyList;
+                
                 if (this.transferHistory.length === 0) {
-                    this.historyList.innerHTML = `
+                    container.innerHTML = `
                         <div class="empty-state">
                             <i class="fas fa-history"></i>
                             <p>No transfer history</p>
@@ -1650,16 +1602,16 @@
                     return;
                 }
 
-                this.historyList.innerHTML = this.transferHistory.map(item => `
-                    <div class="transfer-item">
-                        <div class="transfer-info">
-                            <span class="transfer-icon ${item.type}">
+                container.innerHTML = this.transferHistory.map(item => `
+                    <div class="transfer-item" style="display:flex;align-items:center;justify-content:space-between;padding:10px 15px;border-bottom:1px solid #F3F4F6;flex-wrap:wrap;gap:10px;">
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <span style="font-size:1.2rem;color:${item.type === 'sent' ? 'var(--primary)' : 'var(--success)'};">
                                 <i class="fas ${item.type === 'sent' ? 'fa-arrow-up' : 'fa-arrow-down'}"></i>
                             </span>
                             <div>
                                 <div style="font-weight:500;">${item.filename}</div>
                                 <div style="font-size:0.8rem;color:var(--text-light);">
-                                    ${this.formatSize(item.size)} • ${item.type} • ${new Date(item.timestamp).toLocaleTimeString()}
+                                    ${this.formatSize(item.size)} • ${item.type} • ${new Date(item.timestamp).toLocaleString()}
                                 </div>
                             </div>
                         </div>
