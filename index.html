@@ -271,6 +271,11 @@
             background: #D97706;
         }
 
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+        }
+
         .file-drop-zone {
             border: 3px dashed #D1D5DB;
             border-radius: 12px;
@@ -313,7 +318,7 @@
         }
 
         .file-list {
-            max-height: 300px;
+            max-height: 400px;
             overflow-y: auto;
         }
 
@@ -349,6 +354,7 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            max-width: 200px;
         }
 
         .file-item .file-size {
@@ -401,6 +407,16 @@
         .file-status.received {
             background: #D1FAE5;
             color: #065F46;
+        }
+
+        .file-status.downloadable {
+            background: #DBEAFE;
+            color: #1E40AF;
+            cursor: pointer;
+        }
+
+        .file-status.downloadable:hover {
+            background: #BFDBFE;
         }
 
         .device-list {
@@ -597,20 +613,49 @@
             opacity: 0.5;
         }
 
-        .download-btn {
-            background: var(--success);
-            color: white;
-            border: none;
-            padding: 5px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: all 0.3s;
+        .received-files-list {
+            max-height: 300px;
+            overflow-y: auto;
         }
 
-        .download-btn:hover {
-            background: #059669;
-            transform: scale(1.05);
+        .received-file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 15px;
+            background: #F0FDF4;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border-left: 4px solid var(--success);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .received-file-item .file-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .received-file-item .file-icon {
+            font-size: 1.5rem;
+            color: var(--success);
+        }
+
+        .received-file-item .file-name {
+            font-weight: 500;
+        }
+
+        .received-file-item .file-size {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .received-file-item .file-time {
+            font-size: 0.7rem;
+            color: var(--text-light);
         }
 
         .connection-hint {
@@ -627,6 +672,24 @@
 
         .connection-hint i {
             font-size: 1.2rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .badge-warning {
+            background: #FEF3C7;
+            color: #92400E;
         }
 
         @media (max-width: 768px) {
@@ -678,6 +741,10 @@
                 font-size: 0.8rem;
                 padding: 8px;
                 min-width: 60px;
+            }
+
+            .file-item .file-name {
+                max-width: 120px;
             }
         }
 
@@ -734,6 +801,10 @@
             </button>
             <button class="tab" data-tab="send">
                 <i class="fas fa-upload"></i> Send
+            </button>
+            <button class="tab" data-tab="received">
+                <i class="fas fa-download"></i> Received
+                <span class="badge badge-success" id="receivedBadge" style="display:none;">0</span>
             </button>
             <button class="tab" data-tab="history">
                 <i class="fas fa-history"></i> History
@@ -813,12 +884,32 @@
             </div>
         </div>
 
+        <!-- Received Tab -->
+        <div class="tab-content" id="receivedTab">
+            <div class="card">
+                <div class="card-title">
+                    <i class="fas fa-download"></i> Received Files
+                    <span id="receivedCount" style="font-size:0.8rem;color:var(--text-light);">(0)</span>
+                    <button class="btn btn-danger btn-sm" style="margin-left:auto;" onclick="clearReceivedFiles()">
+                        <i class="fas fa-trash"></i> Clear All
+                    </button>
+                </div>
+                <div id="receivedFilesList">
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p>No received files yet</p>
+                        <p style="font-size:0.8rem;">Files you receive will appear here</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- History Tab -->
         <div class="tab-content" id="historyTab">
             <div class="card">
                 <div class="card-title">
                     <i class="fas fa-history"></i> Transfer History
-                    <button class="btn btn-danger" style="padding:5px 15px;font-size:0.8rem;margin-left:auto;" onclick="clearHistory()">
+                    <button class="btn btn-danger btn-sm" style="margin-left:auto;" onclick="clearHistory()">
                         <i class="fas fa-trash"></i> Clear All
                     </button>
                 </div>
@@ -837,8 +928,7 @@
 
     <script>
         // ============================================
-        // COMPLETE FILE TRANSFER USING PEERJS
-        // No server needed - uses PeerJS free service
+        // COMPLETE FILE TRANSFER WITH RECEIVED FILES
         // ============================================
 
         class FileTransferApp {
@@ -847,6 +937,7 @@
                 this.connections = {};
                 this.fileQueue = [];
                 this.transferHistory = [];
+                this.receivedFiles = [];
                 this.currentConnection = null;
                 this.isConnected = false;
                 this.deviceId = '';
@@ -859,6 +950,7 @@
                 this.initializeEventListeners();
                 this.initializePeer();
                 this.loadHistory();
+                this.loadReceivedFiles();
             }
 
             initializeElements() {
@@ -871,6 +963,9 @@
                 this.fileList = document.getElementById('fileList');
                 this.queueCount = document.getElementById('queueCount');
                 this.historyList = document.getElementById('historyList');
+                this.receivedFilesList = document.getElementById('receivedFilesList');
+                this.receivedCount = document.getElementById('receivedCount');
+                this.receivedBadge = document.getElementById('receivedBadge');
                 this.qrCodeContainer = document.getElementById('qrCode');
                 this.serverStatus = document.getElementById('serverStatus');
                 this.serverDot = document.getElementById('serverDot');
@@ -937,12 +1032,10 @@
                 this.serverStatus.textContent = 'Connecting to PeerJS...';
                 this.serverDot.className = 'dot';
 
-                // Generate a random device ID
                 this.deviceId = this.generateDeviceId();
                 this.deviceIdEl.textContent = this.deviceId;
 
                 try {
-                    // Use PeerJS free signaling server
                     this.peer = new Peer(this.deviceId, {
                         debug: 2,
                         config: {
@@ -976,7 +1069,6 @@
                         this.serverDot.className = 'dot disconnected';
                         this.showToast('Connection error: ' + error.type, 'error');
                         
-                        // Retry with a different ID if conflict
                         if (error.type === 'unavailable-id') {
                             this.deviceId = this.generateDeviceId();
                             this.deviceIdEl.textContent = this.deviceId;
@@ -991,7 +1083,6 @@
                         this.peerReady = false;
                         this.updateStatus('offline');
                         
-                        // Try to reconnect
                         setTimeout(() => {
                             if (this.peer) {
                                 this.peer.reconnect();
@@ -1070,7 +1161,6 @@
                 this.connectBtn.innerHTML = '<span class="spinner"></span> Connecting...';
 
                 try {
-                    // Connect to the other peer
                     const conn = this.peer.connect(targetId, {
                         reliable: true,
                         metadata: { deviceId: this.deviceId }
@@ -1100,7 +1190,6 @@
                     this.updateConnectionStatus(`Connected to ${peerId}`, true);
                     this.showToast(`Connected to ${peerId}!`, 'success');
                     
-                    // Send any pending files
                     if (this.fileQueue.length > 0) {
                         this.sendNextFile();
                     }
@@ -1126,21 +1215,18 @@
                     this.showToast('Connection error: ' + error.message, 'error');
                 });
 
-                // Store connection
                 this.connections[peerId] = conn;
             }
 
             // ============================================
-            // DATA HANDLING
+            // DATA HANDLING - FIXED RECEIVED FILES
             // ============================================
 
             handleData(conn, data) {
                 try {
-                    // Try to parse as JSON (metadata or control message)
                     const parsed = JSON.parse(data);
                     
                     if (parsed.type === 'file-start') {
-                        // Start receiving a file
                         this.isReceiving = true;
                         this.pendingFileData[parsed.id] = {
                             name: parsed.name,
@@ -1149,30 +1235,42 @@
                             totalChunks: parsed.totalChunks,
                             receivedChunks: 0,
                             chunks: [],
-                            from: conn.peer
+                            from: conn.peer,
+                            timestamp: new Date().toISOString()
                         };
                         this.showToast(`Receiving: ${parsed.name}`, 'success');
                         this.updateStatus('online');
                         
                     } else if (parsed.type === 'file-complete') {
-                        // File transfer complete
                         const fileData = this.pendingFileData[parsed.id];
                         if (fileData) {
-                            // Combine chunks and download
+                            // Combine chunks
                             const blob = new Blob(fileData.chunks, { type: fileData.type });
-                            const url = URL.createObjectURL(blob);
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = fileData.name;
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                            setTimeout(() => URL.revokeObjectURL(url), 1000);
                             
+                            // Store received file
+                            const receivedFile = {
+                                id: parsed.id,
+                                name: fileData.name,
+                                size: fileData.size,
+                                type: fileData.type,
+                                data: blob,
+                                timestamp: fileData.timestamp,
+                                from: fileData.from
+                            };
+                            
+                            this.receivedFiles.push(receivedFile);
+                            this.saveReceivedFiles();
+                            this.updateReceivedFilesList();
+                            
+                            // Show notification
+                            this.showToast(`✅ Received: ${fileData.name}`, 'success');
                             this.addToHistory('received', fileData.name, fileData.size);
-                            this.showToast(`Received: ${fileData.name}`, 'success');
+                            
                             delete this.pendingFileData[parsed.id];
                             this.isReceiving = false;
+                            
+                            // Auto-download (optional - uncomment to auto-download)
+                            // this.downloadReceivedFile(receivedFile);
                         }
                     }
                     
@@ -1193,6 +1291,17 @@
                         }
                     }
                 }
+            }
+
+            downloadReceivedFile(file) {
+                const url = URL.createObjectURL(file.data);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = file.name;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
             }
 
             // ============================================
@@ -1241,10 +1350,9 @@
                     this.updateFileList();
 
                     const fileData = await this.readFileAsArrayBuffer(pendingFile.file);
-                    const chunkSize = 16384; // 16KB chunks
+                    const chunkSize = 16384;
                     const totalChunks = Math.ceil(fileData.byteLength / chunkSize);
                     
-                    // Send metadata
                     const metadata = {
                         type: 'file-start',
                         id: pendingFile.id,
@@ -1256,7 +1364,6 @@
                     
                     conn.send(JSON.stringify(metadata));
                     
-                    // Send chunks
                     for (let i = 0; i < totalChunks; i++) {
                         const start = i * chunkSize;
                         const end = Math.min(start + chunkSize, fileData.byteLength);
@@ -1267,11 +1374,9 @@
                         pendingFile.progress = ((i + 1) / totalChunks) * 100;
                         this.updateFileList();
                         
-                        // Small delay to prevent flooding
                         await new Promise(r => setTimeout(r, 2));
                     }
                     
-                    // Send completion signal
                     const completion = {
                         type: 'file-complete',
                         id: pendingFile.id
@@ -1285,7 +1390,6 @@
                     this.addToHistory('sent', pendingFile.name, pendingFile.size);
                     this.showToast(`Sent: ${pendingFile.name}`, 'success');
                     
-                    // Send next file
                     setTimeout(() => this.sendNextFile(), 500);
                     
                 } catch (error) {
@@ -1311,6 +1415,103 @@
                     file.progress = progress;
                     this.updateFileList();
                 }
+            }
+
+            // ============================================
+            // RECEIVED FILES - NEW
+            // ============================================
+
+            updateReceivedFilesList() {
+                if (this.receivedFiles.length === 0) {
+                    this.receivedFilesList.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <p>No received files yet</p>
+                            <p style="font-size:0.8rem;">Files you receive will appear here</p>
+                        </div>
+                    `;
+                    this.receivedCount.textContent = '(0)';
+                    this.receivedBadge.style.display = 'none';
+                    return;
+                }
+
+                this.receivedFilesList.innerHTML = this.receivedFiles.map((file, index) => `
+                    <div class="received-file-item">
+                        <div class="file-info">
+                            <span class="file-icon">
+                                <i class="fas ${this.getFileIcon(file.name)}"></i>
+                            </span>
+                            <div>
+                                <div class="file-name">${file.name}</div>
+                                <div class="file-size">${this.formatSize(file.size)}</div>
+                                <div class="file-time">Received: ${new Date(file.timestamp).toLocaleTimeString()}</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                            <button class="btn btn-success btn-sm" onclick="app.downloadReceivedFileByIndex(${index})">
+                                <i class="fas fa-download"></i> Download
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="app.deleteReceivedFile(${index})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+
+                this.receivedCount.textContent = `(${this.receivedFiles.length})`;
+                this.receivedBadge.style.display = 'inline-block';
+                this.receivedBadge.textContent = this.receivedFiles.length;
+            }
+
+            downloadReceivedFileByIndex(index) {
+                const file = this.receivedFiles[index];
+                if (file) {
+                    this.downloadReceivedFile(file);
+                    this.showToast(`Downloading: ${file.name}`, 'success');
+                }
+            }
+
+            deleteReceivedFile(index) {
+                this.receivedFiles.splice(index, 1);
+                this.saveReceivedFiles();
+                this.updateReceivedFilesList();
+                this.showToast('File removed', 'warning');
+            }
+
+            clearReceivedFiles() {
+                if (this.receivedFiles.length === 0) return;
+                this.receivedFiles = [];
+                this.saveReceivedFiles();
+                this.updateReceivedFilesList();
+                this.showToast('All received files cleared', 'success');
+            }
+
+            saveReceivedFiles() {
+                try {
+                    // Can't store blobs in localStorage, so store metadata
+                    const metadata = this.receivedFiles.map(f => ({
+                        id: f.id,
+                        name: f.name,
+                        size: f.size,
+                        type: f.type,
+                        timestamp: f.timestamp,
+                        from: f.from
+                    }));
+                    localStorage.setItem('receivedFilesMetadata', JSON.stringify(metadata));
+                } catch (e) {}
+            }
+
+            loadReceivedFiles() {
+                try {
+                    const data = localStorage.getItem('receivedFilesMetadata');
+                    if (data) {
+                        const metadata = JSON.parse(data);
+                        // We can't restore blobs from localStorage, so just show metadata
+                        // Files are kept in memory during session
+                        this.receivedFiles = [];
+                        this.updateReceivedFilesList();
+                    }
+                } catch (e) {}
             }
 
             // ============================================
@@ -1405,7 +1606,7 @@
                                 <div class="device-name"><i class="fas fa-check-circle" style="color:var(--success);"></i> Connected to ${this.currentConnection}</div>
                                 <div class="device-time">File transfer ready</div>
                             </div>
-                            <button class="btn btn-danger" style="padding:5px 12px;font-size:0.8rem;" onclick="disconnectDevice()">
+                            <button class="btn btn-danger btn-sm" onclick="disconnectDevice()">
                                 <i class="fas fa-unlink"></i> Disconnect
                             </button>
                         </div>
@@ -1556,6 +1757,7 @@
             window.connectToDevice = () => app.connectToDevice();
             window.disconnectDevice = () => app.disconnect();
             window.clearHistory = () => app.clearHistory();
+            window.clearReceivedFiles = () => app.clearReceivedFiles();
         }
 
         document.addEventListener('DOMContentLoaded', initApp);
