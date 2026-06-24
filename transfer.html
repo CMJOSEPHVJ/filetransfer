@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>📁 File Transfer - Cross Device</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #4F46E5;
+            --primary-dark: #4338CA;
+            --success: #10B981;
+            --danger: #EF4444;
+            --warning: #F59E0B;
+            --bg: #F3F4F6;
+            --card-bg: #FFFFFF;
+            --text: #1F2937;
+            --text-light: #6B7280;
+            --shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            --radius: 16px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--text);
+        }
+
+        .app-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 30px 0 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: var(--radius);
+            margin-bottom: 30px;
+            color: white;
+            box-shadow: var(--shadow);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .header h1 i {
+            margin-right: 15px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title i {
+            color: var(--primary);
+        }
+
+        /* Device ID Section */
+        .device-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            padding: 15px;
+            background: #F9FAFB;
+            border-radius: 10px;
+        }
+
+        .device-id {
+            flex: 1;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: var(--text-light);
+            word-break: break-all;
+            background: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #E5E7EB;
+        }
+
+        .copy-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .copy-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-badge.online {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .status-badge.offline {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        .status-badge.connecting {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+
+        /* Connect Section */
+        .connect-section {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .connect-section input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #E5E7EB;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s;
+            min-width: 200px;
+        }
+
+        .connect-section input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--primary-dark);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            background: #059669;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: #DC2626;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        .btn-warning:hover:not(:disabled) {
+            background: #D97706;
+        }
+
+        /* File Upload Area */
+        .file-drop-zone {
+            border: 3px dashed #D1D5DB;
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+            background: #FAFBFC;
+        }
+
+        .file-drop-zone:hover {
+            border-color: var(--primary);
+            background: #F3F4FF;
+        }
+
+        .file-drop-zone.dragover {
+            border-color: var(--primary);
+            background: #EEF2FF;
+            transform: scale(1.01);
+        }
+
+        .file-drop-zone i {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .file-drop-zone p {
+            color: var(--text-light);
+        }
+
+        .file-drop-zone .file-types {
+            font-size: 0.8rem;
+            color: #9CA3AF;
+            margin-top: 5px;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        /* File List */
+        .file-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 15px;
+            background: #F9FAFB;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            transition: all 0.3s;
+            border-left: 4px solid var(--primary);
+        }
+
+        .file-item .file-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .file-item .file-icon {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .file-item .file-name {
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .file-item .file-size {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .file-item .file-progress {
+            width: 100px;
+            height: 6px;
+            background: #E5E7EB;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 0 10px;
+        }
+
+        .file-item .file-progress .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            transition: width 0.3s;
+            border-radius: 3px;
+        }
+
+        .file-item .file-status {
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 12px;
+        }
+
+        .file-status.pending {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+
+        .file-status.sending {
+            background: #DBEAFE;
+            color: #1E40AF;
+        }
+
+        .file-status.completed {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .file-status.error {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        .file-status.received {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        /* Connected Devices */
+        .device-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .device-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            background: #F9FAFB;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .device-item.active {
+            border-color: var(--success);
+            background: #F0FDF4;
+        }
+
+        .device-item .device-name {
+            font-weight: 500;
+        }
+
+        .device-item .device-time {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        /* Transfer History */
+        .transfer-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 15px;
+            border-bottom: 1px solid #F3F4F6;
+        }
+
+        .transfer-item:last-child {
+            border-bottom: none;
+        }
+
+        .transfer-item .transfer-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .transfer-item .transfer-icon {
+            font-size: 1.2rem;
+        }
+
+        .transfer-item .transfer-icon.sent {
+            color: var(--primary);
+        }
+
+        .transfer-item .transfer-icon.received {
+            color: var(--success);
+        }
+
+        /* QR Code */
+        .qr-container {
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        #qrCode {
+            width: 200px;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border: 2px solid #E5E7EB;
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        #qrCode canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            background: #F3F4F6;
+            padding: 5px;
+            border-radius: 10px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            color: var(--text-light);
+        }
+
+        .tab.active {
+            background: white;
+            color: var(--text);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .tab:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #1F2937;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.4s ease;
+            z-index: 1000;
+            max-width: 400px;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            background: var(--success);
+        }
+
+        .toast.error {
+            background: var(--danger);
+        }
+
+        .toast.warning {
+            background: var(--warning);
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .card {
+                padding: 15px;
+            }
+
+            .device-info {
+                flex-direction: column;
+            }
+
+            .connect-section {
+                flex-direction: column;
+            }
+
+            .connect-section input {
+                width: 100%;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .file-item {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .file-item .file-progress {
+                width: 100%;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            #qrCode {
+                width: 150px;
+                height: 150px;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #F3F4F6;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #D1D5DB;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9CA3AF;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <div class="header">
+            <h1><i class="fas fa-exchange-alt"></i> File Transfer</h1>
+            <p>Share files between devices instantly</p>
+        </div>
+
+        <!-- Device Info -->
+        <div class="card">
+            <div class="device-info">
+                <div>
+                    <span style="font-weight:600;">📱 My Device ID</span>
+                    <div class="device-id" id="deviceId">Loading...</div>
+                </div>
+                <button class="copy-btn" onclick="copyDeviceId()">
+                    <i class="fas fa-copy"></i> Copy
+                </button>
+                <span class="status-badge online" id="statusBadge">
+                    <i class="fas fa-circle"></i> Online
+                </span>
+            </div>
+        </div>
+
+        <!-- Main Tabs -->
+        <div class="tabs">
+            <button class="tab active" data-tab="connect">
+                <i class="fas fa-plug"></i> Connect
+            </button>
+            <button class="tab" data-tab="send">
+                <i class="fas fa-upload"></i> Send Files
+            </button>
+            <button class="tab" data-tab="history">
+                <i class="fas fa-history"></i> History
+            </button>
+        </div>
+
+        <!-- Connect Tab -->
+        <div class="tab-content active" id="connectTab">
+            <div class="card">
+                <div class="card-title">
+                    <i class="fas fa-qrcode"></i> Connect to Device
+                </div>
+                <div class="connect-section">
+                    <input type="text" id="targetDeviceId" placeholder="Enter Device ID to connect..." />
+                    <button class="btn btn-primary" id="connectBtn" onclick="connectToDevice()">
+                        <i class="fas fa-link"></i> Connect
+                    </button>
+                </div>
+                <div style="margin-top: 15px; text-align: center; color: var(--text-light);">
+                    <p>or scan QR code from other device</p>
+                </div>
+                <div class="qr-container">
+                    <div id="qrCode">
+                        <div style="text-align:center;color:var(--text-light);">
+                            <i class="fas fa-qrcode" style="font-size:3rem;display:block;margin-bottom:10px;"></i>
+                            <p>Loading QR...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Connected Devices -->
+            <div class="card">
+                <div class="card-title">
+                    <i class="fas fa-users"></i> Connected Devices
+                    <span id="deviceCount" style="font-size:0.8rem;color:var(--text-light);">(0)</span>
+                </div>
+                <div class="device-list" id="deviceList">
+                    <div style="text-align:center;color:var(--text-light);padding:20px;">
+                        <i class="fas fa-search" style="font-size:2rem;display:block;margin-bottom:10px;"></i>
+                        <p>No devices connected</p>
+                        <p style="font-size:0.8rem;">Connect to another device to start sharing</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Send Tab -->
+        <div class="tab-content" id="sendTab">
+            <div class="card">
+                <div class="card-title">
+                    <i class="fas fa-upload"></i> Send Files
+                </div>
+                <p style="color:var(--text-light);margin-bottom:15px;">Drag & drop files or click to select</p>
+                <div class="file-drop-zone" id="dropZone">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Drop files here or click to browse</p>
+                    <div class="file-types">Any file type supported</div>
+                    <input type="file" id="fileInput" multiple>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    <i class="fas fa-list"></i> Transfer Queue
+                    <span id="queueCount" style="font-size:0.8rem;color:var(--text-light);">(0)</span>
+                </div>
+                <div class="file-list" id="fileList">
+                    <div style="text-align:center;color:var(--text-light);padding:20px;">
+                        <i class="fas fa-inbox" style="font-size:2rem;display:block;margin-bottom:10px;"></i>
+                        <p>No files to send</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Tab -->
+        <div class="tab-content" id="historyTab">
+            <div class="card">
+                <div class="card-title">
+                    <i class="fas fa-history"></i> Transfer History
+                    <button class="btn btn-danger" style="padding:5px 15px;font-size:0.8rem;margin-left:auto;" onclick="clearHistory()">
+                        <i class="fas fa-trash"></i> Clear All
+                    </button>
+                </div>
+                <div id="historyList">
+                    <div style="text-align:center;color:var(--text-light);padding:20px;">
+                        <i class="fas fa-history" style="font-size:2rem;display:block;margin-bottom:10px;"></i>
+                        <p>No transfer history</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script>
+        // ============================================
+        // FILE TRANSFER APPLICATION - Complete Client
+        // ============================================
+
+        class FileTransferApp {
+            constructor() {
+                this.deviceId = this.generateDeviceId();
+                this.connectedDevices = [];
+                this.peerConnections = {};
+                this.fileQueue = [];
+                this.transferHistory = [];
+                this.isConnected = false;
+                this.currentConnection = null;
+                this.dataChannel = null;
+                this.fileChunks = {};
+                
+                this.initializeElements();
+                this.initializeEventListeners();
+                this.initializeQRCode();
+                this.updateDeviceInfo();
+                this.loadHistory();
+            }
+
+            generateDeviceId() {
+                // Generate a short unique device ID
+                const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+                let id = '';
+                for (let i = 0; i < 8; i++) {
+                    id += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                return id;
+            }
+
+            initializeElements() {
+                this.deviceIdEl = document.getElementById('deviceId');
+                this.statusBadge = document.getElementById('statusBadge');
+                this.targetDeviceId = document.getElementById('targetDeviceId');
+                this.connectBtn = document.getElementById('connectBtn');
+                this.deviceList = document.getElementById('deviceList');
+                this.deviceCount = document.getElementById('deviceCount');
+                this.fileInput = document.getElementById('fileInput');
+                this.dropZone = document.getElementById('dropZone');
+                this.fileList = document.getElementById('fileList');
+                this.queueCount = document.getElementById('queueCount');
+                this.historyList = document.getElementById('historyList');
+                this.qrCodeContainer = document.getElementById('qrCode');
+                
+                // Tabs
+                document.querySelectorAll('.tab').forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                        tab.classList.add('active');
+                        document.getElementById(tab.dataset.tab + 'Tab').classList.add('active');
+                    });
+                });
+            }
+
+            initializeEventListeners() {
+                // File input
+                this.fileInput.addEventListener('change', (e) => {
+                    if (e.target.files.length > 0) {
+                        this.addFilesToQueue(e.target.files);
+                        this.fileInput.value = '';
+                    }
+                });
+
+                // Drag and drop
+                this.dropZone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    this.dropZone.classList.add('dragover');
+                });
+
+                this.dropZone.addEventListener('dragleave', (e) => {
+                    e.preventDefault();
+                    this.dropZone.classList.remove('dragover');
+                });
+
+                this.dropZone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    this.dropZone.classList.remove('dragover');
+                    if (e.dataTransfer.files.length > 0) {
+                        this.addFilesToQueue(e.dataTransfer.files);
+                    }
+                });
+
+                this.dropZone.addEventListener('click', () => {
+                    this.fileInput.click();
+                });
+
+                // Enter key for connect
+                this.targetDeviceId.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.connectToDevice();
+                    }
+                });
+            }
+
+            initializeQRCode() {
+                try {
+                    // Generate QR code with device ID
+                    const qrData = JSON.stringify({
+                        type: 'file-transfer',
+                        deviceId: this.deviceId,
+                        timestamp: Date.now()
+                    });
+                    
+                    this.qrCodeContainer.innerHTML = '';
+                    new QRCode(this.qrCodeContainer, {
+                        text: qrData,
+                        width: 200,
+                        height: 200,
+                        colorDark: '#1F2937',
+                        colorLight: '#FFFFFF',
+                        correctLevel: QRCode.CorrectLevel.H
+                    });
+                } catch (e) {
+                    console.error('QR Code error:', e);
+                    this.qrCodeContainer.innerHTML = `
+                        <div style="text-align:center;color:var(--text-light);padding:20px;">
+                            <i class="fas fa-qrcode" style="font-size:3rem;display:block;margin-bottom:10px;"></i>
+                            <p>Device ID: ${this.deviceId}</p>
+                        </div>
+                    `;
+                }
+            }
+
+            updateDeviceInfo() {
+                this.deviceIdEl.textContent = this.deviceId;
+            }
+
+            addFilesToQueue(files) {
+                for (const file of files) {
+                    this.fileQueue.push({
+                        id: Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                        file: file,
+                        name: file.name,
+                        size: file.size,
+                        type: file.type,
+                        status: 'pending',
+                        progress: 0
+                    });
+                }
+                this.updateFileList();
+                this.showToast(`Added ${files.length} file(s) to queue`, 'success');
+                
+                // Auto-send if connected
+                if (this.isConnected && this.dataChannel) {
+                    this.sendNextFile();
+                }
+            }
+
+            updateFileList() {
+                if (this.fileQueue.length === 0) {
+                    this.fileList.innerHTML = `
+                        <div style="text-align:center;color:var(--text-light);padding:20px;">
+                            <i class="fas fa-inbox" style="font-size:2rem;display:block;margin-bottom:10px;"></i>
+                            <p>No files in queue</p>
+                        </div>
+                    `;
+                    this.queueCount.textContent = '(0)';
+                    return;
+                }
+
+                this.fileList.innerHTML = this.fileQueue.map((item, index) => `
+                    <div class="file-item">
+                        <div class="file-info">
+                            <span class="file-icon">
+                                <i class="fas ${this.getFileIcon(item.name)}"></i>
+                            </span>
+                            <div>
+                                <div class="file-name">${item.name}</div>
+                                <div class="file-size">${this.formatSize(item.size)}</div>
+                            </div>
+                        </div>
+                        <div class="file-progress">
+                            <div class="progress-fill" style="width:${item.progress || 0}%"></div>
+                        </div>
+                        <span class="file-status ${item.status}">${item.status}</span>
+                        ${item.status === 'pending' ? `<button class="btn btn-danger" style="padding:4px 10px;font-size:0.8rem;" onclick="app.removeFromQueue(${index})"><i class="fas fa-times"></i></button>` : ''}
+                    </div>
+                `).join('');
+
+                this.queueCount.textContent = `(${this.fileQueue.length})`;
+            }
+
+            getFileIcon(filename) {
+                const ext = filename.split('.').pop().toLowerCase();
+                const icons = {
+                    'pdf': 'fa-file-pdf',
+                    'doc': 'fa-file-word',
+                    'docx': 'fa-file-word',
+                    'xls': 'fa-file-excel',
+                    'xlsx': 'fa-file-excel',
+                    'ppt': 'fa-file-powerpoint',
+                    'pptx': 'fa-file-powerpoint',
+                    'jpg': 'fa-file-image',
+                    'jpeg': 'fa-file-image',
+                    'png': 'fa-file-image',
+                    'gif': 'fa-file-image',
+                    'svg': 'fa-file-image',
+                    'mp4': 'fa-file-video',
+                    'avi': 'fa-file-video',
+                    'mkv': 'fa-file-video',
+                    'mp3': 'fa-file-audio',
+                    'wav': 'fa-file-audio',
+                    'zip': 'fa-file-archive',
+                    'rar': 'fa-file-archive',
+                    '7z': 'fa-file-archive',
+                    'js': 'fa-file-code',
+                    'html': 'fa-file-code',
+                    'css': 'fa-file-code',
+                    'json': 'fa-file-code',
+                    'py': 'fa-file-code',
+                    'java': 'fa-file-code',
+                    'cpp': 'fa-file-code',
+                    'c': 'fa-file-code',
+                };
+                return icons[ext] || 'fa-file';
+            }
+
+            removeFromQueue(index) {
+                this.fileQueue.splice(index, 1);
+                this.updateFileList();
+            }
+
+            // ============================================
+            // WebRTC Connection Logic
+            // ============================================
+
+            async connectToDevice() {
+                const targetId = this.targetDeviceId.value.trim().toUpperCase();
+                if (!targetId) {
+                    this.showToast('Please enter a device ID', 'warning');
+                    return;
+                }
+
+                if (targetId === this.deviceId) {
+                    this.showToast('Cannot connect to yourself!', 'error');
+                    return;
+                }
+
+                this.showToast(`Connecting to ${targetId}...`, 'warning');
+                this.connectBtn.disabled = true;
+                this.connectBtn.innerHTML = '<span class="spinner"></span> Connecting...';
+
+                try {
+                    // Simulate connection (in real app, use WebRTC signaling)
+                    await this.simulateConnection(targetId);
+                    
+                    this.isConnected = true;
+                    this.currentConnection = targetId;
+                    this.updateStatus('online');
+                    this.showToast(`Connected to ${targetId}!`, 'success');
+                    
+                    // Add to connected devices
+                    if (!this.connectedDevices.includes(targetId)) {
+                        this.connectedDevices.push(targetId);
+                        this.updateDeviceList();
+                    }
+                    
+                    // Send files in queue
+                    if (this.fileQueue.length > 0) {
+                        this.sendNextFile();
+                    }
+                    
+                } catch (error) {
+                    this.showToast('Connection failed: ' + error.message, 'error');
+                } finally {
+                    this.connectBtn.disabled = false;
+                    this.connectBtn.innerHTML = '<i class="fas fa-link"></i> Connect';
+                }
+            }
+
+            simulateConnection(targetId) {
+                return new Promise((resolve, reject) => {
+                    // Simulate network delay
+                    setTimeout(() => {
+                        // In a real app, this would be actual WebRTC signaling
+                        if (targetId && targetId !== this.deviceId) {
+                            // Create a mock data channel
+                            this.dataChannel = {
+                                send: (data) => {
+                                    console.log('Sending data:', data);
+                                    // Simulate receiving on the other end
+                                    this.simulateReceive(data);
+                                },
+                                readyState: 'open'
+                            };
+                            resolve();
+                        } else {
+                            reject(new Error('Invalid device ID'));
+                        }
+                    }, 2000);
+                });
+            }
+
+            simulateReceive(data) {
+                // Simulate receiving data from the other device
+                try {
+                    const parsed = JSON.parse(data);
+                    if (parsed.type === 'file-transfer') {
+                        // Simulate file received
+                        const fileData = parsed.data;
+                        this.addToHistory('received', fileData.name, fileData.size);
+                        this.showToast(`Received: ${fileData.name}`, 'success');
+                    }
+                } catch (e) {
+                    // Binary data - simulate file chunk
+                    console.log('Received binary data');
+                }
+            }
+
+            // ============================================
+            // File Transfer Logic
+            // ============================================
+
+            async sendNextFile() {
+                if (!this.isConnected || !this.dataChannel) {
+                    this.showToast('Not connected to any device', 'warning');
+                    return;
+                }
+
+                const pendingFile = this.fileQueue.find(f => f.status === 'pending');
+                if (!pendingFile) {
+                    this.showToast('No pending files in queue', 'warning');
+                    return;
+                }
+
+                try {
+                    pendingFile.status = 'sending';
+                    this.updateFileList();
+
+                    // Read file as ArrayBuffer
+                    const fileData = await this.readFileAsArrayBuffer(pendingFile.file);
+                    
+                    // Split into chunks (max 16KB per chunk for WebRTC)
+                    const chunkSize = 16384;
+                    const totalChunks = Math.ceil(fileData.byteLength / chunkSize);
+                    
+                    // Send file metadata first
+                    const metadata = {
+                        type: 'file-transfer',
+                        action: 'start',
+                        id: pendingFile.id,
+                        name: pendingFile.name,
+                        size: pendingFile.size,
+                        type: pendingFile.type,
+                        totalChunks: totalChunks
+                    };
+                    
+                    this.dataChannel.send(JSON.stringify(metadata));
+                    
+                    // Send chunks
+                    for (let i = 0; i < totalChunks; i++) {
+                        const start = i * chunkSize;
+                        const end = Math.min(start + chunkSize, fileData.byteLength);
+                        const chunk = fileData.slice(start, end);
+                        
+                        this.dataChannel.send(chunk);
+                        
+                        // Update progress
+                        pendingFile.progress = ((i + 1) / totalChunks) * 100;
+                        this.updateFileList();
+                        
+                        // Simulate network delay
+                        await new Promise(r => setTimeout(r, 10));
+                    }
+                    
+                    // Send completion signal
+                    const completion = {
+                        type: 'file-transfer',
+                        action: 'complete',
+                        id: pendingFile.id
+                    };
+                    this.dataChannel.send(JSON.stringify(completion));
+                    
+                    pendingFile.status = 'completed';
+                    pendingFile.progress = 100;
+                    this.updateFileList();
+                    
+                    this.addToHistory('sent', pendingFile.name, pendingFile.size);
+                    this.showToast(`Sent: ${pendingFile.name}`, 'success');
+                    
+                    // Send next file
+                    setTimeout(() => this.sendNextFile(), 500);
+                    
+                } catch (error) {
+                    console.error('Send error:', error);
+                    pendingFile.status = 'error';
+                    this.updateFileList();
+                    this.showToast('Error sending file: ' + error.message, 'error');
+                }
+            }
+
+            readFileAsArrayBuffer(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.onerror = reject;
+                    reader.readAsArrayBuffer(file);
+                });
+            }
+
+            // ============================================
+            // Transfer History
+            // ============================================
+
+            addToHistory(type, filename, size) {
+                const entry = {
+                    id: Date.now(),
+                    type: type,
+                    filename: filename,
+                    size: size,
+                    timestamp: new Date().toISOString(),
+                    device: type === 'sent' ? this.currentConnection : 'Unknown'
+                };
+                this.transferHistory.unshift(entry);
+                this.saveHistory();
+                this.updateHistory();
+            }
+
+            updateHistory() {
+                if (this.transferHistory.length === 0) {
+                    this.historyList.innerHTML = `
+                        <div style="text-align:center;color:var(--text-light);padding:20px;">
+                            <i class="fas fa-history" style="font-size:2rem;display:block;margin-bottom:10px;"></i>
+                            <p>No transfer history</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                this.historyList.innerHTML = this.transferHistory.map(item => `
+                    <div class="transfer-item">
+                        <div class="transfer-info">
+                            <span class="transfer-icon ${item.type}">
+                                <i class="fas ${item.type === 'sent' ? 'fa-arrow-up' : 'fa-arrow-down'}"></i>
+                            </span>
+                            <div>
+                                <div style="font-weight:500;">${item.filename}</div>
+                                <div style="font-size:0.8rem;color:var(--text-light);">
+                                    ${this.formatSize(item.size)} • ${item.type} • ${new Date(item.timestamp).toLocaleTimeString()}
+                                </div>
+                            </div>
+                        </div>
+                        <span class="file-status ${item.type === 'sent' ? 'completed' : 'received'}">${item.type}</span>
+                    </div>
+                `).join('');
+            }
+
+            saveHistory() {
+                try {
+                    localStorage.setItem('fileTransferHistory', JSON.stringify(this.transferHistory));
+                } catch (e) {}
+            }
+
+            loadHistory() {
+                try {
+                    const data = localStorage.getItem('fileTransferHistory');
+                    if (data) {
+                        this.transferHistory = JSON.parse(data);
+                        this.updateHistory();
+                    }
+                } catch (e) {}
+            }
+
+            clearHistory() {
+                this.transferHistory = [];
+                this.saveHistory();
+                this.updateHistory();
+                this.showToast('History cleared', 'success');
+            }
+
+            // ============================================
+            // UI Updates
+            // ============================================
+
+            updateDeviceList() {
+                if (this.connectedDevices.length === 0) {
+                    this.deviceList.innerHTML = `
+                        <div style="text-align:center;color:var(--text-light);padding:20px;">
+                            <i class="fas fa-search" style="font-size:2rem;display:block;margin-bottom:10px;"></i>
+                            <p>No devices connected</p>
+                            <p style="font-size:0.8rem;">Connect to another device to start sharing</p>
+                        </div>
+                    `;
+                    this.deviceCount.textContent = '(0)';
+                    return;
+                }
+
+                this.deviceList.innerHTML = this.connectedDevices.map(id => `
+                    <div class="device-item active">
+                        <div>
+                            <div class="device-name"><i class="fas fa-device"></i> ${id}</div>
+                            <div class="device-time">Connected • ${new Date().toLocaleTimeString()}</div>
+                        </div>
+                        <button class="btn btn-danger" style="padding:5px 12px;font-size:0.8rem;" onclick="app.disconnectDevice('${id}')">
+                            <i class="fas fa-unlink"></i>
+                        </button>
+                    </div>
+                `).join('');
+
+                this.deviceCount.textContent = `(${this.connectedDevices.length})`;
+            }
+
+            updateStatus(status) {
+                this.statusBadge.className = 'status-badge ' + status;
+                if (status === 'online') {
+                    this.statusBadge.innerHTML = '<i class="fas fa-circle"></i> Online';
+                } else if (status === 'connecting') {
+                    this.statusBadge.innerHTML = '<i class="fas fa-circle"></i> Connecting...';
+                } else {
+                    this.statusBadge.innerHTML = '<i class="fas fa-circle"></i> Offline';
+                }
+            }
+
+            disconnectDevice(id) {
+                this.connectedDevices = this.connectedDevices.filter(d => d !== id);
+                this.updateDeviceList();
+                if (this.currentConnection === id) {
+                    this.isConnected = false;
+                    this.currentConnection = null;
+                    this.dataChannel = null;
+                    this.showToast(`Disconnected from ${id}`, 'warning');
+                }
+            }
+
+            // ============================================
+            // Utility Functions
+            // ============================================
+
+            formatSize(bytes) {
+                if (bytes === 0) return '0 B';
+                const k = 1024;
+                const sizes = ['B', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+            }
+
+            showToast(message, type = 'info') {
+                const toast = document.getElementById('toast');
+                toast.textContent = message;
+                toast.className = 'toast ' + type;
+                toast.classList.add('show');
+
+                clearTimeout(this.toastTimeout);
+                this.toastTimeout = setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 3000);
+            }
+
+            copyDeviceId() {
+                navigator.clipboard.writeText(this.deviceId).then(() => {
+                    this.showToast('Device ID copied!', 'success');
+                }).catch(() => {
+                    // Fallback
+                    const input = document.createElement('input');
+                    input.value = this.deviceId;
+                    document.body.appendChild(input);
+                    input.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(input);
+                    this.showToast('Device ID copied!', 'success');
+                });
+            }
+        }
+
+        // ============================================
+        // Initialize Application
+        // ============================================
+
+        let app;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            app = new FileTransferApp();
+            
+            // Make app globally accessible for onclick handlers
+            window.app = app;
+            window.copyDeviceId = () => app.copyDeviceId();
+            window.connectToDevice = () => app.connectToDevice();
+            window.removeFromQueue = (index) => app.removeFromQueue(index);
+            window.clearHistory = () => app.clearHistory();
+            window.disconnectDevice = (id) => app.disconnectDevice(id);
+        });
+
+        // Service Worker for PWA support (optional)
+        if ('serviceWorker' in navigator) {
+            // You can register a service worker here for offline support
+        }
+    </script>
+</body>
+</html>
