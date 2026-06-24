@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-    <title>📁 File Transfer - Debug Version</title>
+    <title>📁 File Transfer - Working Version</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.2/peerjs.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif; background: #F3F4F6; min-height: 100vh; padding: 20px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #F3F4F6; min-height: 100vh; padding: 20px; }
         .container { max-width: 900px; margin: 0 auto; }
         .header { text-align: center; padding: 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; margin-bottom: 20px; color: white; }
         .header h1 { font-size: 2rem; }
         .card { background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .card-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        .card-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
         .device-id-box { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 15px; background: #F9FAFB; border-radius: 10px; }
         .device-id { flex: 1; font-family: monospace; font-size: 1.2rem; background: white; padding: 10px; border-radius: 6px; border: 1px solid #E5E7EB; }
         .btn { padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; }
@@ -45,32 +45,28 @@
         .status-sending { background: #DBEAFE; color: #1E40AF; }
         .status-completed { background: #D1FAE5; color: #065F46; }
         .status-error { background: #FEE2E2; color: #991B1B; }
-        .status-received { background: #D1FAE5; color: #065F46; }
         .received-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; background: #F0FDF4; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid #10B981; flex-wrap: wrap; gap: 10px; }
+        .received-item .info { display: flex; align-items: center; gap: 15px; flex: 1; min-width: 0; }
+        .received-item .name { font-weight: 500; word-break: break-all; }
+        .received-item .size { font-size: 0.8rem; color: #6B7280; }
+        .received-item .time { font-size: 0.7rem; color: #6B7280; }
         .tabs { display: flex; gap: 5px; margin-bottom: 20px; background: #F3F4F6; padding: 5px; border-radius: 10px; overflow-x: auto; }
         .tab { flex: 1; padding: 10px; border: none; background: transparent; border-radius: 8px; cursor: pointer; font-weight: 600; color: #6B7280; min-width: 80px; text-align: center; }
         .tab.active { background: white; color: #1F2937; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; background: #D1FAE5; color: #065F46; }
-        .debug-box { background: #1F2937; color: #10B981; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 0.8rem; max-height: 300px; overflow-y: auto; white-space: pre-wrap; margin-top: 10px; }
-        .debug-box .error { color: #EF4444; }
-        .debug-box .success { color: #10B981; }
-        .debug-box .info { color: #60A5FA; }
         .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
         .status-badge.online { background: #D1FAE5; color: #065F46; }
         .status-badge.offline { background: #FEE2E2; color: #991B1B; }
-        .status-badge.connecting { background: #FEF3C7; color: #92400E; }
         .toast { position: fixed; bottom: 30px; right: 30px; background: #1F2937; color: white; padding: 15px 25px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transform: translateY(100px); opacity: 0; transition: all 0.4s ease; z-index: 1000; max-width: 400px; }
         .toast.show { transform: translateY(0); opacity: 1; }
         .toast.success { background: #10B981; }
         .toast.error { background: #EF4444; }
         .toast.warning { background: #F59E0B; }
         .auto-download-banner { background: #DBEAFE; padding: 10px 15px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; color: #1E40AF; }
+        .file-size-badge { font-size: 0.7rem; background: #E5E7EB; padding: 2px 8px; border-radius: 10px; color: #6B7280; }
         @media (max-width: 768px) { .device-id-box { flex-direction: column; } .connect-section { flex-direction: column; } .btn { width: 100%; justify-content: center; } .tabs { flex-wrap: nowrap; } .tab { font-size: 0.8rem; padding: 8px; min-width: 60px; } }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #F3F4F6; }
-        ::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 3px; }
     </style>
 </head>
 <body>
@@ -78,9 +74,8 @@
         <div class="header">
             <h1><i class="fas fa-exchange-alt"></i> File Transfer</h1>
             <p>Share files between devices instantly</p>
-            <div style="margin-top:10px;display:flex;justify-content:center;gap:15px;flex-wrap:wrap;">
+            <div style="margin-top:10px;">
                 <span class="status-badge online" id="statusBadge"><i class="fas fa-circle"></i> Online</span>
-                <span style="background:rgba(255,255,255,0.2);padding:4px 12px;border-radius:20px;font-size:0.8rem;" id="serverStatus">Initializing...</span>
             </div>
         </div>
 
@@ -98,7 +93,6 @@
             <button class="tab active" data-tab="connect"><i class="fas fa-plug"></i> Connect</button>
             <button class="tab" data-tab="send"><i class="fas fa-upload"></i> Send</button>
             <button class="tab" data-tab="received"><i class="fas fa-download"></i> Received <span class="badge" id="receivedBadge" style="display:none;">0</span></button>
-            <button class="tab" data-tab="debug"><i class="fas fa-bug"></i> Debug</button>
         </div>
 
         <div class="tab-content active" id="connectTab">
@@ -140,15 +134,8 @@
                 <div class="card-title"><i class="fas fa-download"></i> Received Files <span id="receivedCount" style="font-size:0.8rem;color:#6B7280;">(0)</span>
                     <button class="btn btn-danger btn-sm" style="margin-left:auto;" onclick="clearReceivedFiles()"><i class="fas fa-trash"></i> Clear All</button>
                 </div>
-                <div class="auto-download-banner"><i class="fas fa-download"></i> Files auto-download when received!</div>
+                <div class="auto-download-banner"><i class="fas fa-download"></i> Click "Download" to save files to your device!</div>
                 <div id="receivedFilesList"><div style="text-align:center;padding:20px;color:#6B7280;"><i class="fas fa-inbox" style="font-size:2rem;display:block;margin-bottom:10px;"></i><p>No received files yet</p></div></div>
-            </div>
-        </div>
-
-        <div class="tab-content" id="debugTab">
-            <div class="card">
-                <div class="card-title"><i class="fas fa-bug"></i> Debug Log <button class="btn btn-danger btn-sm" style="margin-left:auto;" onclick="clearDebug()"><i class="fas fa-trash"></i> Clear</button></div>
-                <div class="debug-box" id="debugLog">[System] Debug console ready...</div>
             </div>
         </div>
     </div>
@@ -157,7 +144,7 @@
 
     <script>
         // ============================================
-        // FILE TRANSFER WITH FULL DEBUGGING
+        // WORKING FILE TRANSFER - FIXED VERSION
         // ============================================
 
         class FileTransferApp {
@@ -172,35 +159,13 @@
                 this.pendingFileData = {};
                 this.isReceiving = false;
                 this.peerReady = false;
+                this.fileCounter = 0;
                 
                 this.initializeElements();
                 this.initializeEventListeners();
                 this.initializePeer();
-                
-                this.log('🚀 App initialized');
             }
 
-            // -------- LOGGING --------
-            log(message, type = 'info') {
-                const el = document.getElementById('debugLog');
-                const timestamp = new Date().toLocaleTimeString();
-                const colors = {
-                    info: '#60A5FA',
-                    success: '#10B981',
-                    error: '#EF4444',
-                    warning: '#F59E0B'
-                };
-                const color = colors[type] || '#60A5FA';
-                el.innerHTML += `\n[${timestamp}] <span style="color:${color}">${message}</span>`;
-                el.scrollTop = el.scrollHeight;
-                console.log(`[${timestamp}]`, message);
-            }
-
-            clearDebug() {
-                document.getElementById('debugLog').innerHTML = '[System] Debug console cleared...';
-            }
-
-            // -------- INIT --------
             initializeElements() {
                 this.deviceIdEl = document.getElementById('deviceId');
                 this.statusBadge = document.getElementById('statusBadge');
@@ -216,7 +181,6 @@
                 this.connectionStatus = document.getElementById('connectionStatus');
                 this.connectionStatusSend = document.getElementById('connectionStatusSend');
                 this.connectionInfo = document.getElementById('connectionInfo');
-                this.serverStatus = document.getElementById('serverStatus');
                 
                 document.querySelectorAll('.tab').forEach(tab => {
                     tab.addEventListener('click', () => {
@@ -231,7 +195,6 @@
             initializeEventListeners() {
                 this.fileInput.addEventListener('change', (e) => {
                     if (e.target.files.length > 0) {
-                        this.log(`📁 Selected ${e.target.files.length} file(s) for upload`, 'info');
                         this.addFilesToQueue(e.target.files);
                         this.fileInput.value = '';
                     }
@@ -251,7 +214,6 @@
                     e.preventDefault();
                     this.dropZone.classList.remove('dragover');
                     if (e.dataTransfer.files.length > 0) {
-                        this.log(`📁 Dropped ${e.dataTransfer.files.length} file(s)`, 'info');
                         this.addFilesToQueue(e.dataTransfer.files);
                     }
                 });
@@ -265,66 +227,44 @@
                 });
             }
 
-            // -------- PEERJS --------
             initializePeer() {
-                this.log('🔌 Initializing PeerJS...', 'info');
-                this.serverStatus.textContent = 'Connecting...';
-
                 this.deviceId = this.generateDeviceId();
                 this.deviceIdEl.textContent = this.deviceId;
-                this.log(`📱 Device ID: ${this.deviceId}`, 'info');
+                console.log('📱 Device ID:', this.deviceId);
 
                 try {
                     this.peer = new Peer(this.deviceId, {
-                        debug: 2,
                         config: {
                             iceServers: [
                                 { urls: 'stun:stun.l.google.com:19302' },
-                                { urls: 'stun:stun1.l.google.com:19302' },
-                                { urls: 'stun:stun2.l.google.com:19302' },
-                                { urls: 'stun:stun3.l.google.com:19302' }
+                                { urls: 'stun:stun1.l.google.com:19302' }
                             ]
                         }
                     });
 
                     this.peer.on('open', (id) => {
-                        this.log(`✅ PeerJS connected with ID: ${id}`, 'success');
-                        this.serverStatus.textContent = 'Ready';
+                        console.log('✅ PeerJS connected with ID:', id);
                         this.peerReady = true;
                         this.updateStatus('online');
                         this.showToast('Device ready! Share your ID.', 'success');
                     });
 
                     this.peer.on('connection', (conn) => {
-                        this.log(`📥 Incoming connection from: ${conn.peer}`, 'info');
+                        console.log('📥 Incoming connection from:', conn.peer);
                         this.handleConnection(conn);
                     });
 
                     this.peer.on('error', (error) => {
-                        this.log(`❌ PeerJS error: ${error.type} - ${error.message}`, 'error');
-                        this.serverStatus.textContent = 'Error';
-                        this.showToast('Error: ' + error.type, 'error');
-                        
+                        console.error('❌ PeerJS error:', error.type);
                         if (error.type === 'unavailable-id') {
                             this.deviceId = this.generateDeviceId();
                             this.deviceIdEl.textContent = this.deviceId;
-                            this.log(`🔄 Retrying with new ID: ${this.deviceId}`, 'warning');
                             setTimeout(() => this.initializePeer(), 1000);
                         }
                     });
 
-                    this.peer.on('disconnected', () => {
-                        this.log('❌ PeerJS disconnected', 'error');
-                        this.serverStatus.textContent = 'Disconnected';
-                        this.peerReady = false;
-                        this.updateStatus('offline');
-                        setTimeout(() => { if (this.peer) this.peer.reconnect(); }, 3000);
-                    });
-
                 } catch (error) {
-                    this.log(`❌ Failed to initialize: ${error.message}`, 'error');
-                    this.serverStatus.textContent = 'Failed';
-                    this.showToast('Failed to initialize', 'error');
+                    console.error('❌ Failed to initialize:', error);
                 }
             }
 
@@ -337,7 +277,6 @@
                 return id;
             }
 
-            // -------- CONNECTION --------
             connectToDevice() {
                 const targetId = this.targetDeviceId.value.trim().toUpperCase();
                 if (!targetId) {
@@ -353,20 +292,17 @@
                     return;
                 }
 
-                this.log(`🔗 Connecting to ${targetId}...`, 'info');
                 this.showToast(`Connecting to ${targetId}...`, 'warning');
                 this.connectBtn.disabled = true;
-                this.connectBtn.innerHTML = '<span class="spinner">⏳</span> Connecting...';
+                this.connectBtn.innerHTML = '⏳ Connecting...';
 
                 try {
                     const conn = this.peer.connect(targetId, {
-                        reliable: true,
-                        metadata: { deviceId: this.deviceId }
+                        reliable: true
                     });
                     this.handleConnection(conn);
                 } catch (error) {
-                    this.log(`❌ Connection error: ${error.message}`, 'error');
-                    this.showToast('Connection failed: ' + error.message, 'error');
+                    this.showToast('Connection failed', 'error');
                 } finally {
                     this.connectBtn.disabled = false;
                     this.connectBtn.innerHTML = '<i class="fas fa-link"></i> Connect';
@@ -375,10 +311,9 @@
 
             handleConnection(conn) {
                 const peerId = conn.peer;
-                this.log(`🔗 Handling connection from ${peerId}`, 'info');
 
                 conn.on('open', () => {
-                    this.log(`✅ Connection OPEN with ${peerId}`, 'success');
+                    console.log('✅ Connection opened with:', peerId);
                     this.currentConnection = peerId;
                     this.isConnected = true;
                     this.connections[peerId] = conn;
@@ -388,18 +323,17 @@
                     this.showToast(`✅ Connected to ${peerId}!`, 'success');
                     
                     if (this.fileQueue.length > 0) {
-                        this.log(`📤 Sending pending files...`, 'info');
                         this.sendNextFile();
                     }
                 });
 
                 conn.on('data', (data) => {
-                    this.log(`📨 Received data from ${peerId} (${data.byteLength || data.length} bytes)`, 'info');
+                    console.log('📨 Received data, size:', data.byteLength || data.length);
                     this.handleData(conn, data);
                 });
 
                 conn.on('close', () => {
-                    this.log(`❌ Connection CLOSED with ${peerId}`, 'error');
+                    console.log('❌ Connection closed with:', peerId);
                     if (this.currentConnection === peerId) {
                         this.isConnected = false;
                         this.currentConnection = null;
@@ -409,23 +343,16 @@
                     delete this.connections[peerId];
                 });
 
-                conn.on('error', (error) => {
-                    this.log(`❌ Connection error with ${peerId}: ${error.message}`, 'error');
-                    this.showToast('Connection error', 'error');
-                });
-
                 this.connections[peerId] = conn;
             }
 
-            // -------- DATA HANDLING --------
             handleData(conn, data) {
                 try {
                     // Try to parse as JSON
                     const parsed = JSON.parse(data);
-                    this.log(`📨 Parsed JSON: ${parsed.type}`, 'info');
                     
                     if (parsed.type === 'file-start') {
-                        this.log(`📥 File transfer START: ${parsed.name} (${parsed.size} bytes, ${parsed.totalChunks} chunks)`, 'info');
+                        console.log('📥 File transfer START:', parsed.name);
                         this.isReceiving = true;
                         this.pendingFileData[parsed.id] = {
                             name: parsed.name,
@@ -438,21 +365,18 @@
                             timestamp: new Date().toISOString()
                         };
                         this.showToast(`Receiving: ${parsed.name}`, 'success');
-                        this.log(`📥 Receiving file: ${parsed.name}`, 'success');
                         
                     } else if (parsed.type === 'file-complete') {
-                        this.log(`📥 File transfer COMPLETE: ${parsed.id}`, 'success');
+                        console.log('📥 File transfer COMPLETE:', parsed.id);
                         const fileData = this.pendingFileData[parsed.id];
                         if (fileData) {
-                            this.log(`📊 Received ${fileData.receivedChunks}/${fileData.totalChunks} chunks`, 'info');
-                            
-                            // Combine chunks
-                            const blob = new Blob(fileData.chunks, { type: fileData.type || 'application/octet-stream' });
-                            this.log(`📦 Blob created: ${blob.size} bytes`, 'success');
+                            // IMPORTANT: Create blob from all chunks
+                            const blob = new Blob(fileData.chunks, { type: fileData.type });
+                            console.log('📦 Blob created, size:', blob.size, 'bytes');
                             
                             // Store the file
                             const receivedFile = {
-                                id: 'file_' + Date.now(),
+                                id: 'file_' + Date.now() + '_' + (++this.fileCounter),
                                 name: fileData.name,
                                 size: fileData.size,
                                 type: fileData.type,
@@ -462,20 +386,20 @@
                             };
                             
                             this.receivedFiles.push(receivedFile);
-                            this.log(`💾 File stored: ${fileData.name} (${this.receivedFiles.length} total)`, 'success');
+                            console.log('💾 File stored, total received:', this.receivedFiles.length);
                             
-                            // AUTO-DOWNLOAD
+                            // Update UI
+                            this.updateReceivedFilesList();
+                            
+                            // AUTO DOWNLOAD
                             this.autoDownloadFile(blob, fileData.name);
                             
-                            this.updateReceivedFilesList();
-                            this.addToHistory('received', fileData.name, fileData.size);
                             this.showToast(`✅ Received: ${fileData.name}`, 'success');
-                            this.log(`✅ File received and saved: ${fileData.name}`, 'success');
                             
                             delete this.pendingFileData[parsed.id];
                             this.isReceiving = false;
                         } else {
-                            this.log(`⚠️ No pending data for ID: ${parsed.id}`, 'warning');
+                            console.log('⚠️ No pending data for ID:', parsed.id);
                         }
                     }
                     
@@ -490,21 +414,20 @@
                                 fileData.chunks.push(data);
                                 fileData.receivedChunks++;
                                 
+                                // Log progress
                                 const progress = Math.round((fileData.receivedChunks / fileData.totalChunks) * 100);
-                                if (progress % 10 === 0) {
-                                    this.log(`📊 Receiving ${fileData.name}: ${progress}% (${fileData.receivedChunks}/${fileData.totalChunks})`, 'info');
+                                if (progress % 20 === 0) {
+                                    console.log(`📊 ${fileData.name}: ${progress}% (${fileData.receivedChunks}/${fileData.totalChunks})`);
                                 }
                             }
                         }
-                    } else {
-                        this.log(`⚠️ Received binary data but not receiving`, 'warning');
                     }
                 }
             }
 
             autoDownloadFile(blob, filename) {
                 try {
-                    this.log(`⬇️ Auto-downloading: ${filename} (${blob.size} bytes)`, 'success');
+                    console.log('⬇️ Auto-downloading:', filename, 'size:', blob.size);
                     
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
@@ -516,18 +439,17 @@
                     setTimeout(() => {
                         document.body.removeChild(a);
                         URL.revokeObjectURL(url);
-                        this.log(`✅ Download complete: ${filename}`, 'success');
+                        console.log('✅ Download complete:', filename);
                     }, 5000);
                     
                     this.showToast(`⬇️ Downloading: ${filename}`, 'success');
                     
                 } catch (error) {
-                    this.log(`❌ Auto-download error: ${error.message}`, 'error');
+                    console.error('❌ Auto-download error:', error);
                     this.showToast('Error downloading file', 'error');
                 }
             }
 
-            // -------- SENDING --------
             addFilesToQueue(files) {
                 for (const file of files) {
                     this.fileQueue.push({
@@ -539,33 +461,27 @@
                         status: 'pending',
                         progress: 0
                     });
-                    this.log(`📁 Added to queue: ${file.name} (${file.size} bytes)`, 'info');
                 }
                 this.updateFileList();
                 this.showToast(`Added ${files.length} file(s)`, 'success');
                 
                 if (this.isConnected && this.currentConnection) {
                     this.sendNextFile();
-                } else {
-                    this.log('⚠️ Not connected, files will send when connected', 'warning');
                 }
             }
 
             async sendNextFile() {
                 if (!this.isConnected || !this.currentConnection) {
-                    this.log('⚠️ Cannot send: No connection', 'warning');
                     return;
                 }
 
                 const conn = this.connections[this.currentConnection];
                 if (!conn || conn.open === false) {
-                    this.log('⚠️ Cannot send: Connection not open', 'warning');
                     return;
                 }
 
                 const pendingFile = this.fileQueue.find(f => f.status === 'pending');
                 if (!pendingFile) {
-                    this.log('📭 No pending files', 'info');
                     return;
                 }
 
@@ -577,7 +493,7 @@
                     const chunkSize = 16384;
                     const totalChunks = Math.ceil(fileData.byteLength / chunkSize);
                     
-                    this.log(`📤 Sending ${pendingFile.name} (${fileData.byteLength} bytes, ${totalChunks} chunks)`, 'info');
+                    console.log(`📤 Sending ${pendingFile.name} (${totalChunks} chunks)`);
                     
                     const metadata = {
                         type: 'file-start',
@@ -589,7 +505,6 @@
                     };
                     
                     conn.send(JSON.stringify(metadata));
-                    this.log(`📤 Sent metadata for ${pendingFile.name}`, 'info');
                     
                     for (let i = 0; i < totalChunks; i++) {
                         const start = i * chunkSize;
@@ -601,10 +516,6 @@
                         pendingFile.progress = ((i + 1) / totalChunks) * 100;
                         this.updateFileList();
                         
-                        if (i % 10 === 0) {
-                            this.log(`📤 Sent chunk ${i+1}/${totalChunks}`, 'info');
-                        }
-                        
                         await new Promise(r => setTimeout(r, 1));
                     }
                     
@@ -613,20 +524,17 @@
                         id: pendingFile.id
                     };
                     conn.send(JSON.stringify(completion));
-                    this.log(`📤 Sent completion for ${pendingFile.name}`, 'success');
                     
                     pendingFile.status = 'completed';
                     pendingFile.progress = 100;
                     this.updateFileList();
                     
-                    this.addToHistory('sent', pendingFile.name, pendingFile.size);
                     this.showToast(`✅ Sent: ${pendingFile.name}`, 'success');
-                    this.log(`✅ File sent: ${pendingFile.name}`, 'success');
                     
                     setTimeout(() => this.sendNextFile(), 500);
                     
                 } catch (error) {
-                    this.log(`❌ Send error: ${error.message}`, 'error');
+                    console.error('❌ Send error:', error);
                     pendingFile.status = 'error';
                     this.updateFileList();
                     this.showToast('Error sending file', 'error');
@@ -642,7 +550,6 @@
                 });
             }
 
-            // -------- UI UPDATES --------
             updateFileList() {
                 const container = this.fileList;
                 if (this.fileQueue.length === 0) {
@@ -669,6 +576,7 @@
 
             updateReceivedFilesList() {
                 const container = this.receivedFilesList;
+                
                 if (this.receivedFiles.length === 0) {
                     container.innerHTML = `<div style="text-align:center;padding:20px;color:#6B7280;"><i class="fas fa-inbox" style="font-size:2rem;display:block;margin-bottom:10px;"></i><p>No received files yet</p></div>`;
                     this.receivedCount.textContent = '(0)';
@@ -683,7 +591,7 @@
                             <div style="flex:1;min-width:0;">
                                 <div class="name">${file.name}</div>
                                 <div class="size">${this.formatSize(file.size)}</div>
-                                <div style="font-size:0.7rem;color:#6B7280;">Received: ${new Date(file.timestamp).toLocaleString()}</div>
+                                <div class="time">Received: ${new Date(file.timestamp).toLocaleString()}</div>
                             </div>
                         </div>
                         <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -701,10 +609,8 @@
             downloadReceivedFile(index) {
                 const file = this.receivedFiles[index];
                 if (file && file.blob) {
-                    this.log(`⬇️ Manual download: ${file.name}`, 'info');
                     this.autoDownloadFile(file.blob, file.name);
                 } else {
-                    this.log(`❌ File data missing for index ${index}`, 'error');
                     this.showToast('File data not available', 'error');
                 }
             }
@@ -712,7 +618,6 @@
             deleteReceivedFile(index) {
                 this.receivedFiles.splice(index, 1);
                 this.updateReceivedFilesList();
-                this.log(`🗑️ Deleted received file`, 'info');
                 this.showToast('File removed', 'warning');
             }
 
@@ -720,7 +625,6 @@
                 if (this.receivedFiles.length === 0) return;
                 this.receivedFiles = [];
                 this.updateReceivedFilesList();
-                this.log(`🗑️ All received files cleared`, 'info');
                 this.showToast('All cleared', 'success');
             }
 
@@ -763,16 +667,6 @@
                 }
             }
 
-            // -------- HISTORY --------
-            addToHistory(type, filename, size) {
-                try {
-                    let history = JSON.parse(localStorage.getItem('fileTransferHistory') || '[]');
-                    history.unshift({ id: Date.now(), type, filename, size, timestamp: new Date().toISOString() });
-                    localStorage.setItem('fileTransferHistory', JSON.stringify(history));
-                } catch (e) {}
-            }
-
-            // -------- UTILITY --------
             formatSize(bytes) {
                 if (bytes === 0) return '0 B';
                 const k = 1024;
@@ -793,7 +687,6 @@
             copyDeviceId() {
                 navigator.clipboard.writeText(this.deviceId).then(() => {
                     this.showToast('Device ID copied!', 'success');
-                    this.log('📋 Device ID copied', 'info');
                 }).catch(() => {
                     const input = document.createElement('input');
                     input.value = this.deviceId;
@@ -814,7 +707,6 @@
                     this.currentConnection = null;
                     this.updateConnectionStatus('Not connected', false);
                     this.showToast('Disconnected', 'warning');
-                    this.log('🔌 Disconnected', 'info');
                 }
             }
         }
@@ -832,7 +724,6 @@
             window.connectToDevice = () => app.connectToDevice();
             window.disconnectDevice = () => app.disconnect();
             window.clearReceivedFiles = () => app.clearReceivedFiles();
-            window.clearDebug = () => app.clearDebug();
         }
 
         document.addEventListener('DOMContentLoaded', initApp);
