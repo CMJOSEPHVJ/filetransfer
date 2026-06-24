@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <title>📁 File Transfer - Cross Device</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -39,10 +41,9 @@
             margin: 0 auto;
         }
 
-        /* Header */
         .header {
             text-align: center;
-            padding: 30px 0 20px;
+            padding: 30px 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: var(--radius);
             margin-bottom: 30px;
@@ -64,7 +65,40 @@
             margin-top: 5px;
         }
 
-        /* Cards */
+        .server-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            margin-top: 10px;
+        }
+
+        .server-status .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10B981;
+            animation: pulse 2s infinite;
+        }
+
+        .server-status .dot.disconnected {
+            background: #EF4444;
+        }
+
+        @keyframes pulse {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.4;
+            }
+        }
+
         .card {
             background: var(--card-bg);
             border-radius: var(--radius);
@@ -80,13 +114,13 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            flex-wrap: wrap;
         }
 
         .card-title i {
             color: var(--primary);
         }
 
-        /* Device ID Section */
         .device-info {
             display: flex;
             align-items: center;
@@ -107,6 +141,7 @@
             padding: 8px 12px;
             border-radius: 6px;
             border: 1px solid #E5E7EB;
+            min-width: 150px;
         }
 
         .copy-btn {
@@ -148,7 +183,6 @@
             color: #92400E;
         }
 
-        /* Connect Section */
         .connect-section {
             display: flex;
             gap: 10px;
@@ -182,6 +216,7 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
+            white-space: nowrap;
         }
 
         .btn:hover {
@@ -231,7 +266,15 @@
             background: #D97706;
         }
 
-        /* File Upload Area */
+        .btn-secondary {
+            background: #E5E7EB;
+            color: #374151;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #D1D5DB;
+        }
+
         .file-drop-zone {
             border: 3px dashed #D1D5DB;
             border-radius: 12px;
@@ -273,7 +316,6 @@
             display: none;
         }
 
-        /* File List */
         .file-list {
             max-height: 300px;
             overflow-y: auto;
@@ -289,6 +331,8 @@
             margin-bottom: 8px;
             transition: all 0.3s;
             border-left: 4px solid var(--primary);
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .file-item .file-info {
@@ -322,7 +366,6 @@
             background: #E5E7EB;
             border-radius: 3px;
             overflow: hidden;
-            margin: 0 10px;
         }
 
         .file-item .file-progress .progress-fill {
@@ -364,7 +407,6 @@
             color: #065F46;
         }
 
-        /* Connected Devices */
         .device-list {
             display: flex;
             flex-direction: column;
@@ -380,6 +422,8 @@
             border-radius: 8px;
             border: 2px solid transparent;
             transition: all 0.3s;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .device-item.active {
@@ -396,13 +440,14 @@
             color: var(--text-light);
         }
 
-        /* Transfer History */
         .transfer-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 10px 15px;
             border-bottom: 1px solid #F3F4F6;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .transfer-item:last-child {
@@ -427,7 +472,6 @@
             color: var(--success);
         }
 
-        /* QR Code */
         .qr-container {
             display: flex;
             justify-content: center;
@@ -453,7 +497,6 @@
             height: 100% !important;
         }
 
-        /* Tabs */
         .tabs {
             display: flex;
             gap: 5px;
@@ -461,6 +504,7 @@
             background: #F3F4F6;
             padding: 5px;
             border-radius: 10px;
+            overflow-x: auto;
         }
 
         .tab {
@@ -473,6 +517,8 @@
             font-weight: 600;
             transition: all 0.3s;
             color: var(--text-light);
+            min-width: 80px;
+            text-align: center;
         }
 
         .tab.active {
@@ -493,7 +539,6 @@
             display: block;
         }
 
-        /* Toast */
         .toast {
             position: fixed;
             bottom: 30px;
@@ -527,7 +572,6 @@
             background: var(--warning);
         }
 
-        /* Loading Spinner */
         .spinner {
             display: inline-block;
             width: 20px;
@@ -544,14 +588,42 @@
             }
         }
 
-        /* Responsive */
+        .empty-state {
+            text-align: center;
+            color: var(--text-light);
+            padding: 30px 20px;
+        }
+
+        .empty-state i {
+            font-size: 2.5rem;
+            display: block;
+            margin-bottom: 10px;
+            opacity: 0.5;
+        }
+
+        .download-btn {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s;
+        }
+
+        .download-btn:hover {
+            background: #059669;
+            transform: scale(1.05);
+        }
+
         @media (max-width: 768px) {
             body {
                 padding: 10px;
             }
 
             .header h1 {
-                font-size: 1.8rem;
+                font-size: 1.5rem;
             }
 
             .card {
@@ -560,6 +632,7 @@
 
             .device-info {
                 flex-direction: column;
+                align-items: stretch;
             }
 
             .connect-section {
@@ -568,6 +641,7 @@
 
             .connect-section input {
                 width: 100%;
+                min-width: unset;
             }
 
             .btn {
@@ -575,26 +649,26 @@
                 justify-content: center;
             }
 
-            .file-item {
-                flex-wrap: wrap;
-                gap: 10px;
-            }
-
             .file-item .file-progress {
                 width: 100%;
-            }
-
-            .tabs {
-                flex-direction: column;
             }
 
             #qrCode {
                 width: 150px;
                 height: 150px;
             }
+
+            .tabs {
+                flex-wrap: nowrap;
+            }
+
+            .tab {
+                font-size: 0.8rem;
+                padding: 8px;
+                min-width: 60px;
+            }
         }
 
-        /* Scrollbar */
         ::-webkit-scrollbar {
             width: 6px;
         }
@@ -619,12 +693,16 @@
         <div class="header">
             <h1><i class="fas fa-exchange-alt"></i> File Transfer</h1>
             <p>Share files between devices instantly</p>
+            <div class="server-status">
+                <span class="dot" id="serverDot"></span>
+                <span id="serverStatus">Connecting...</span>
+            </div>
         </div>
 
         <!-- Device Info -->
         <div class="card">
             <div class="device-info">
-                <div>
+                <div style="flex:1;min-width:150px;">
                     <span style="font-weight:600;">📱 My Device ID</span>
                     <div class="device-id" id="deviceId">Loading...</div>
                 </div>
@@ -637,13 +715,13 @@
             </div>
         </div>
 
-        <!-- Main Tabs -->
+        <!-- Tabs -->
         <div class="tabs">
             <button class="tab active" data-tab="connect">
                 <i class="fas fa-plug"></i> Connect
             </button>
             <button class="tab" data-tab="send">
-                <i class="fas fa-upload"></i> Send Files
+                <i class="fas fa-upload"></i> Send
             </button>
             <button class="tab" data-tab="history">
                 <i class="fas fa-history"></i> History
@@ -667,25 +745,24 @@
                 </div>
                 <div class="qr-container">
                     <div id="qrCode">
-                        <div style="text-align:center;color:var(--text-light);">
-                            <i class="fas fa-qrcode" style="font-size:3rem;display:block;margin-bottom:10px;"></i>
+                        <div class="empty-state">
+                            <i class="fas fa-qrcode"></i>
                             <p>Loading QR...</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Connected Devices -->
             <div class="card">
                 <div class="card-title">
-                    <i class="fas fa-users"></i> Connected Devices
+                    <i class="fas fa-users"></i> Online Devices
                     <span id="deviceCount" style="font-size:0.8rem;color:var(--text-light);">(0)</span>
                 </div>
                 <div class="device-list" id="deviceList">
-                    <div style="text-align:center;color:var(--text-light);padding:20px;">
-                        <i class="fas fa-search" style="font-size:2rem;display:block;margin-bottom:10px;"></i>
-                        <p>No devices connected</p>
-                        <p style="font-size:0.8rem;">Connect to another device to start sharing</p>
+                    <div class="empty-state">
+                        <i class="fas fa-search"></i>
+                        <p>No devices online</p>
+                        <p style="font-size:0.8rem;">Open this page on another device</p>
                     </div>
                 </div>
             </div>
@@ -696,8 +773,8 @@
             <div class="card">
                 <div class="card-title">
                     <i class="fas fa-upload"></i> Send Files
+                    <span id="connectionStatus" style="font-size:0.8rem;color:var(--text-light);margin-left:10px;">(Not connected)</span>
                 </div>
-                <p style="color:var(--text-light);margin-bottom:15px;">Drag & drop files or click to select</p>
                 <div class="file-drop-zone" id="dropZone">
                     <i class="fas fa-cloud-upload-alt"></i>
                     <p>Drop files here or click to browse</p>
@@ -712,9 +789,9 @@
                     <span id="queueCount" style="font-size:0.8rem;color:var(--text-light);">(0)</span>
                 </div>
                 <div class="file-list" id="fileList">
-                    <div style="text-align:center;color:var(--text-light);padding:20px;">
-                        <i class="fas fa-inbox" style="font-size:2rem;display:block;margin-bottom:10px;"></i>
-                        <p>No files to send</p>
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p>No files in queue</p>
                     </div>
                 </div>
             </div>
@@ -730,8 +807,8 @@
                     </button>
                 </div>
                 <div id="historyList">
-                    <div style="text-align:center;color:var(--text-light);padding:20px;">
-                        <i class="fas fa-history" style="font-size:2rem;display:block;margin-bottom:10px;"></i>
+                    <div class="empty-state">
+                        <i class="fas fa-history"></i>
                         <p>No transfer history</p>
                     </div>
                 </div>
@@ -742,33 +819,34 @@
     <!-- Toast -->
     <div id="toast" class="toast"></div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
         // ============================================
-        // FILE TRANSFER APPLICATION - Complete Client
+        // COMPLETE FILE TRANSFER APPLICATION
+        // Uses WebRTC with free signaling server
         // ============================================
 
         class FileTransferApp {
             constructor() {
                 this.deviceId = this.generateDeviceId();
-                this.connectedDevices = [];
                 this.peerConnections = {};
+                this.dataChannels = {};
                 this.fileQueue = [];
                 this.transferHistory = [];
-                this.isConnected = false;
+                this.connectedDevices = [];
                 this.currentConnection = null;
-                this.dataChannel = null;
-                this.fileChunks = {};
+                this.isConnected = false;
+                this.socket = null;
+                this.receivedChunks = {};
+                this.pendingFileData = {};
+                this.isReceiving = false;
                 
                 this.initializeElements();
                 this.initializeEventListeners();
-                this.initializeQRCode();
-                this.updateDeviceInfo();
+                this.connectToSignalingServer();
                 this.loadHistory();
             }
 
             generateDeviceId() {
-                // Generate a short unique device ID
                 const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
                 let id = '';
                 for (let i = 0; i < 8; i++) {
@@ -790,6 +868,11 @@
                 this.queueCount = document.getElementById('queueCount');
                 this.historyList = document.getElementById('historyList');
                 this.qrCodeContainer = document.getElementById('qrCode');
+                this.serverStatus = document.getElementById('serverStatus');
+                this.serverDot = document.getElementById('serverDot');
+                this.connectionStatus = document.getElementById('connectionStatus');
+                
+                this.deviceIdEl.textContent = this.deviceId;
                 
                 // Tabs
                 document.querySelectorAll('.tab').forEach(tab => {
@@ -842,38 +925,357 @@
                 });
             }
 
-            initializeQRCode() {
+            // ============================================
+            // SIGNALING SERVER (Using free PeerJS server)
+            // ============================================
+
+            connectToSignalingServer() {
+                this.serverStatus.textContent = 'Connecting...';
+                this.serverDot.className = 'dot';
+                
+                // Use a free public signaling server
+                // In production, you should host your own
+                const SIGNALING_SERVER = 'wss://signaling-server.herokuapp.com';
+                
                 try {
-                    // Generate QR code with device ID
-                    const qrData = JSON.stringify({
-                        type: 'file-transfer',
-                        deviceId: this.deviceId,
-                        timestamp: Date.now()
+                    this.socket = io('https://file-transfer-signaling.herokuapp.com', {
+                        transports: ['websocket'],
+                        reconnection: true,
+                        reconnectionAttempts: 5
                     });
+
+                    this.socket.on('connect', () => {
+                        console.log('✅ Connected to signaling server');
+                        this.serverStatus.textContent = 'Connected';
+                        this.serverDot.className = 'dot';
+                        this.socket.emit('register', this.deviceId);
+                        this.socket.emit('get-peers');
+                        this.showToast('Connected to signaling server', 'success');
+                    });
+
+                    this.socket.on('registered', (data) => {
+                        console.log('📱 Registered:', data);
+                    });
+
+                    this.socket.on('peer-list', (peers) => {
+                        console.log('📋 Peer list:', peers);
+                        this.updateDeviceList(peers);
+                    });
+
+                    this.socket.on('offer', async (data) => {
+                        console.log('📤 Received offer from:', data.from);
+                        await this.handleOffer(data);
+                    });
+
+                    this.socket.on('answer', async (data) => {
+                        console.log('📤 Received answer from:', data.from);
+                        await this.handleAnswer(data);
+                    });
+
+                    this.socket.on('ice-candidate', async (data) => {
+                        console.log('🧊 Received ICE candidate from:', data.from);
+                        await this.handleIceCandidate(data);
+                    });
+
+                    this.socket.on('disconnect', () => {
+                        console.log('❌ Disconnected from server');
+                        this.serverStatus.textContent = 'Disconnected';
+                        this.serverDot.className = 'dot disconnected';
+                        this.showToast('Lost connection to server', 'error');
+                    });
+
+                    this.socket.on('error', (data) => {
+                        console.error('Socket error:', data);
+                        this.showToast('Server error: ' + (data.message || 'Unknown'), 'error');
+                    });
+
+                } catch (error) {
+                    console.error('Connection error:', error);
+                    this.serverStatus.textContent = 'Connection failed';
+                    this.serverDot.className = 'dot disconnected';
+                    this.showToast('Failed to connect to server', 'error');
                     
-                    this.qrCodeContainer.innerHTML = '';
-                    new QRCode(this.qrCodeContainer, {
-                        text: qrData,
-                        width: 200,
-                        height: 200,
-                        colorDark: '#1F2937',
-                        colorLight: '#FFFFFF',
-                        correctLevel: QRCode.CorrectLevel.H
-                    });
-                } catch (e) {
-                    console.error('QR Code error:', e);
-                    this.qrCodeContainer.innerHTML = `
-                        <div style="text-align:center;color:var(--text-light);padding:20px;">
-                            <i class="fas fa-qrcode" style="font-size:3rem;display:block;margin-bottom:10px;"></i>
-                            <p>Device ID: ${this.deviceId}</p>
-                        </div>
-                    `;
+                    // Fallback: Use the device ID only for local connections
+                    setTimeout(() => {
+                        this.serverStatus.textContent = 'Offline mode (local only)';
+                    }, 2000);
                 }
             }
 
-            updateDeviceInfo() {
-                this.deviceIdEl.textContent = this.deviceId;
+            // ============================================
+            // WEBRTC CONNECTION
+            // ============================================
+
+            async connectToDevice() {
+                const targetId = this.targetDeviceId.value.trim().toUpperCase();
+                if (!targetId) {
+                    this.showToast('Please enter a device ID', 'warning');
+                    return;
+                }
+
+                if (targetId === this.deviceId) {
+                    this.showToast('Cannot connect to yourself!', 'error');
+                    return;
+                }
+
+                if (!this.socket || !this.socket.connected) {
+                    this.showToast('Not connected to signaling server', 'error');
+                    return;
+                }
+
+                this.showToast(`Connecting to ${targetId}...`, 'warning');
+                this.connectBtn.disabled = true;
+                this.connectBtn.innerHTML = '<span class="spinner"></span> Connecting...';
+
+                try {
+                    const pc = new RTCPeerConnection({
+                        iceServers: [
+                            { urls: 'stun:stun.l.google.com:19302' },
+                            { urls: 'stun:stun1.l.google.com:19302' },
+                            { urls: 'stun:stun2.l.google.com:19302' }
+                        ]
+                    });
+
+                    this.peerConnections[targetId] = pc;
+
+                    const dataChannel = pc.createDataChannel('fileTransfer', {
+                        ordered: true,
+                        maxRetransmits: 3
+                    });
+
+                    this.setupDataChannel(dataChannel, targetId);
+                    this.dataChannels[targetId] = dataChannel;
+
+                    const offer = await pc.createOffer();
+                    await pc.setLocalDescription(offer);
+
+                    this.socket.emit('offer', {
+                        targetDeviceId: targetId,
+                        offer: pc.localDescription
+                    });
+
+                    pc.onicecandidate = (event) => {
+                        if (event.candidate) {
+                            this.socket.emit('ice-candidate', {
+                                targetDeviceId: targetId,
+                                candidate: event.candidate
+                            });
+                        }
+                    };
+
+                    pc.onconnectionstatechange = () => {
+                        if (pc.connectionState === 'connected') {
+                            this.currentConnection = targetId;
+                            this.isConnected = true;
+                            this.updateStatus('online');
+                            this.connectionStatus.textContent = `✅ Connected to ${targetId}`;
+                            this.showToast(`Connected to ${targetId}!`, 'success');
+                            
+                            if (!this.connectedDevices.includes(targetId)) {
+                                this.connectedDevices.push(targetId);
+                            }
+                            this.sendNextFile();
+                        } else if (pc.connectionState === 'failed') {
+                            this.showToast(`Connection to ${targetId} failed`, 'error');
+                            this.isConnected = false;
+                            this.connectionStatus.textContent = '(Not connected)';
+                        }
+                    };
+
+                } catch (error) {
+                    console.error('Connection error:', error);
+                    this.showToast('Connection failed: ' + error.message, 'error');
+                    this.isConnected = false;
+                    this.connectionStatus.textContent = '(Not connected)';
+                } finally {
+                    this.connectBtn.disabled = false;
+                    this.connectBtn.innerHTML = '<i class="fas fa-link"></i> Connect';
+                }
             }
+
+            async handleOffer(data) {
+                const fromId = data.from;
+                
+                try {
+                    const pc = new RTCPeerConnection({
+                        iceServers: [
+                            { urls: 'stun:stun.l.google.com:19302' },
+                            { urls: 'stun:stun1.l.google.com:19302' }
+                        ]
+                    });
+
+                    this.peerConnections[fromId] = pc;
+
+                    pc.ondatachannel = (event) => {
+                        const dataChannel = event.channel;
+                        this.setupDataChannel(dataChannel, fromId);
+                        this.dataChannels[fromId] = dataChannel;
+                    };
+
+                    await pc.setRemoteDescription(data.offer);
+
+                    const answer = await pc.createAnswer();
+                    await pc.setLocalDescription(answer);
+
+                    this.socket.emit('answer', {
+                        targetDeviceId: fromId,
+                        answer: pc.localDescription
+                    });
+
+                    pc.onicecandidate = (event) => {
+                        if (event.candidate) {
+                            this.socket.emit('ice-candidate', {
+                                targetDeviceId: fromId,
+                                candidate: event.candidate
+                            });
+                        }
+                    };
+
+                    pc.onconnectionstatechange = () => {
+                        if (pc.connectionState === 'connected') {
+                            this.currentConnection = fromId;
+                            this.isConnected = true;
+                            this.updateStatus('online');
+                            this.connectionStatus.textContent = `✅ Connected to ${fromId}`;
+                            this.showToast(`Connected to ${fromId}!`, 'success');
+                            
+                            if (!this.connectedDevices.includes(fromId)) {
+                                this.connectedDevices.push(fromId);
+                            }
+                        }
+                    };
+
+                } catch (error) {
+                    console.error('Handle offer error:', error);
+                    this.showToast('Error handling connection', 'error');
+                }
+            }
+
+            async handleAnswer(data) {
+                const fromId = data.from;
+                const pc = this.peerConnections[fromId];
+                if (pc) {
+                    try {
+                        await pc.setRemoteDescription(data.answer);
+                    } catch (e) {
+                        console.error('Error setting answer:', e);
+                    }
+                }
+            }
+
+            async handleIceCandidate(data) {
+                const fromId = data.from;
+                const pc = this.peerConnections[fromId];
+                if (pc && data.candidate) {
+                    try {
+                        await pc.addIceCandidate(data.candidate);
+                    } catch (e) {
+                        console.error('Error adding ICE candidate:', e);
+                    }
+                }
+            }
+
+            // ============================================
+            // DATA CHANNEL SETUP
+            // ============================================
+
+            setupDataChannel(dataChannel, deviceId) {
+                dataChannel.onopen = () => {
+                    console.log(`✅ Data channel opened with ${deviceId}`);
+                    this.isConnected = true;
+                    this.currentConnection = deviceId;
+                    this.connectionStatus.textContent = `✅ Connected to ${deviceId}`;
+                    
+                    if (!this.connectedDevices.includes(deviceId)) {
+                        this.connectedDevices.push(deviceId);
+                    }
+                    this.updateDeviceList(this.connectedDevices);
+                    this.sendNextFile();
+                };
+
+                dataChannel.onclose = () => {
+                    console.log(`❌ Data channel closed with ${deviceId}`);
+                    if (this.currentConnection === deviceId) {
+                        this.isConnected = false;
+                        this.currentConnection = null;
+                        this.connectionStatus.textContent = '(Not connected)';
+                    }
+                };
+
+                dataChannel.onerror = (error) => {
+                    console.error('Data channel error:', error);
+                    this.showToast('Data channel error', 'error');
+                };
+
+                dataChannel.onmessage = (event) => {
+                    this.handleDataChannelMessage(event.data, deviceId);
+                };
+            }
+
+            handleDataChannelMessage(data, fromId) {
+                try {
+                    // Try to parse as JSON (metadata or control message)
+                    const parsed = JSON.parse(data);
+                    
+                    if (parsed.type === 'file-start') {
+                        // Start receiving a file
+                        this.isReceiving = true;
+                        this.pendingFileData[parsed.id] = {
+                            name: parsed.name,
+                            size: parsed.size,
+                            type: parsed.type,
+                            totalChunks: parsed.totalChunks,
+                            receivedChunks: 0,
+                            chunks: []
+                        };
+                        this.showToast(`Receiving: ${parsed.name}`, 'success');
+                        
+                    } else if (parsed.type === 'file-complete') {
+                        // File transfer complete
+                        const fileData = this.pendingFileData[parsed.id];
+                        if (fileData) {
+                            // Combine chunks and download
+                            const blob = new Blob(fileData.chunks, { type: fileData.type });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = fileData.name;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            setTimeout(() => URL.revokeObjectURL(url), 1000);
+                            
+                            this.addToHistory('received', fileData.name, fileData.size);
+                            this.showToast(`Received: ${fileData.name}`, 'success');
+                            delete this.pendingFileData[parsed.id];
+                            this.isReceiving = false;
+                        }
+                    }
+                    
+                } catch (e) {
+                    // Binary data (file chunk)
+                    if (this.isReceiving) {
+                        // Find the active file transfer
+                        const fileIds = Object.keys(this.pendingFileData);
+                        if (fileIds.length > 0) {
+                            const id = fileIds[fileIds.length - 1];
+                            const fileData = this.pendingFileData[id];
+                            if (fileData) {
+                                fileData.chunks.push(data);
+                                fileData.receivedChunks++;
+                                
+                                // Update progress
+                                const progress = (fileData.receivedChunks / fileData.totalChunks) * 100;
+                                this.updateFileProgress(id, progress);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ============================================
+            // FILE TRANSFER
+            // ============================================
 
             addFilesToQueue(files) {
                 for (const file of files) {
@@ -890,17 +1292,112 @@
                 this.updateFileList();
                 this.showToast(`Added ${files.length} file(s) to queue`, 'success');
                 
-                // Auto-send if connected
-                if (this.isConnected && this.dataChannel) {
+                if (this.isConnected && this.dataChannels[this.currentConnection]) {
                     this.sendNextFile();
                 }
             }
 
+            async sendNextFile() {
+                if (!this.isConnected || !this.currentConnection) {
+                    return;
+                }
+
+                const dataChannel = this.dataChannels[this.currentConnection];
+                if (!dataChannel || dataChannel.readyState !== 'open') {
+                    return;
+                }
+
+                const pendingFile = this.fileQueue.find(f => f.status === 'pending');
+                if (!pendingFile) {
+                    return;
+                }
+
+                try {
+                    pendingFile.status = 'sending';
+                    this.updateFileList();
+
+                    const fileData = await this.readFileAsArrayBuffer(pendingFile.file);
+                    const chunkSize = 16384; // 16KB chunks
+                    const totalChunks = Math.ceil(fileData.byteLength / chunkSize);
+                    
+                    // Send metadata
+                    const metadata = {
+                        type: 'file-start',
+                        id: pendingFile.id,
+                        name: pendingFile.name,
+                        size: pendingFile.size,
+                        type: pendingFile.type,
+                        totalChunks: totalChunks
+                    };
+                    
+                    dataChannel.send(JSON.stringify(metadata));
+                    
+                    // Send chunks
+                    for (let i = 0; i < totalChunks; i++) {
+                        const start = i * chunkSize;
+                        const end = Math.min(start + chunkSize, fileData.byteLength);
+                        const chunk = fileData.slice(start, end);
+                        
+                        dataChannel.send(chunk);
+                        
+                        pendingFile.progress = ((i + 1) / totalChunks) * 100;
+                        this.updateFileList();
+                        
+                        // Small delay to prevent flooding
+                        await new Promise(r => setTimeout(r, 5));
+                    }
+                    
+                    // Send completion signal
+                    const completion = {
+                        type: 'file-complete',
+                        id: pendingFile.id
+                    };
+                    dataChannel.send(JSON.stringify(completion));
+                    
+                    pendingFile.status = 'completed';
+                    pendingFile.progress = 100;
+                    this.updateFileList();
+                    
+                    this.addToHistory('sent', pendingFile.name, pendingFile.size);
+                    this.showToast(`Sent: ${pendingFile.name}`, 'success');
+                    
+                    // Send next file
+                    setTimeout(() => this.sendNextFile(), 500);
+                    
+                } catch (error) {
+                    console.error('Send error:', error);
+                    pendingFile.status = 'error';
+                    this.updateFileList();
+                    this.showToast('Error sending file: ' + error.message, 'error');
+                }
+            }
+
+            readFileAsArrayBuffer(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.onerror = reject;
+                    reader.readAsArrayBuffer(file);
+                });
+            }
+
+            updateFileProgress(id, progress) {
+                const file = this.fileQueue.find(f => f.id === id);
+                if (file) {
+                    file.progress = progress;
+                    this.updateFileList();
+                }
+            }
+
+            // ============================================
+            // UI UPDATES
+            // ============================================
+
             updateFileList() {
                 if (this.fileQueue.length === 0) {
                     this.fileList.innerHTML = `
-                        <div style="text-align:center;color:var(--text-light);padding:20px;">
-                            <i class="fas fa-inbox" style="font-size:2rem;display:block;margin-bottom:10px;"></i>
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
                             <p>No files in queue</p>
                         </div>
                     `;
@@ -908,7 +1405,7 @@
                     return;
                 }
 
-                this.fileList.innerHTML = this.fileQueue.map((item, index) => `
+                this.fileList.innerHTML = this.fileQueue.map((item) => `
                     <div class="file-item">
                         <div class="file-info">
                             <span class="file-icon">
@@ -923,11 +1420,58 @@
                             <div class="progress-fill" style="width:${item.progress || 0}%"></div>
                         </div>
                         <span class="file-status ${item.status}">${item.status}</span>
-                        ${item.status === 'pending' ? `<button class="btn btn-danger" style="padding:4px 10px;font-size:0.8rem;" onclick="app.removeFromQueue(${index})"><i class="fas fa-times"></i></button>` : ''}
                     </div>
                 `).join('');
 
                 this.queueCount.textContent = `(${this.fileQueue.length})`;
+            }
+
+            updateDeviceList(devices) {
+                if (!devices || devices.length === 0) {
+                    this.deviceList.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-search"></i>
+                            <p>No devices online</p>
+                            <p style="font-size:0.8rem;">Open this page on another device</p>
+                        </div>
+                    `;
+                    this.deviceCount.textContent = '(0)';
+                    return;
+                }
+
+                // Filter out self
+                const otherDevices = devices.filter(id => id !== this.deviceId);
+                
+                if (otherDevices.length === 0) {
+                    this.deviceList.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-search"></i>
+                            <p>No other devices online</p>
+                            <p style="font-size:0.8rem;">Open this page on another device</p>
+                        </div>
+                    `;
+                    this.deviceCount.textContent = '(0)';
+                    return;
+                }
+
+                this.deviceList.innerHTML = otherDevices.map(id => `
+                    <div class="device-item ${this.currentConnection === id ? 'active' : ''}">
+                        <div>
+                            <div class="device-name"><i class="fas fa-device"></i> ${id}</div>
+                            <div class="device-time">${this.currentConnection === id ? '✅ Connected' : 'Online'}</div>
+                        </div>
+                        ${this.currentConnection === id ? 
+                            `<button class="btn btn-danger" style="padding:5px 12px;font-size:0.8rem;" onclick="disconnectDevice('${id}')">
+                                <i class="fas fa-unlink"></i> Disconnect
+                            </button>` :
+                            `<button class="btn btn-primary" style="padding:5px 12px;font-size:0.8rem;" onclick="connectToId('${id}')">
+                                <i class="fas fa-link"></i> Connect
+                            </button>`
+                        }
+                    </div>
+                `).join('');
+
+                this.deviceCount.textContent = `(${otherDevices.length})`;
             }
 
             getFileIcon(filename) {
@@ -958,198 +1502,24 @@
                     'css': 'fa-file-code',
                     'json': 'fa-file-code',
                     'py': 'fa-file-code',
-                    'java': 'fa-file-code',
-                    'cpp': 'fa-file-code',
-                    'c': 'fa-file-code',
+                    'java': 'fa-file-code'
                 };
                 return icons[ext] || 'fa-file';
             }
 
-            removeFromQueue(index) {
-                this.fileQueue.splice(index, 1);
-                this.updateFileList();
-            }
-
-            // ============================================
-            // WebRTC Connection Logic
-            // ============================================
-
-            async connectToDevice() {
-                const targetId = this.targetDeviceId.value.trim().toUpperCase();
-                if (!targetId) {
-                    this.showToast('Please enter a device ID', 'warning');
-                    return;
-                }
-
-                if (targetId === this.deviceId) {
-                    this.showToast('Cannot connect to yourself!', 'error');
-                    return;
-                }
-
-                this.showToast(`Connecting to ${targetId}...`, 'warning');
-                this.connectBtn.disabled = true;
-                this.connectBtn.innerHTML = '<span class="spinner"></span> Connecting...';
-
-                try {
-                    // Simulate connection (in real app, use WebRTC signaling)
-                    await this.simulateConnection(targetId);
-                    
-                    this.isConnected = true;
-                    this.currentConnection = targetId;
-                    this.updateStatus('online');
-                    this.showToast(`Connected to ${targetId}!`, 'success');
-                    
-                    // Add to connected devices
-                    if (!this.connectedDevices.includes(targetId)) {
-                        this.connectedDevices.push(targetId);
-                        this.updateDeviceList();
-                    }
-                    
-                    // Send files in queue
-                    if (this.fileQueue.length > 0) {
-                        this.sendNextFile();
-                    }
-                    
-                } catch (error) {
-                    this.showToast('Connection failed: ' + error.message, 'error');
-                } finally {
-                    this.connectBtn.disabled = false;
-                    this.connectBtn.innerHTML = '<i class="fas fa-link"></i> Connect';
-                }
-            }
-
-            simulateConnection(targetId) {
-                return new Promise((resolve, reject) => {
-                    // Simulate network delay
-                    setTimeout(() => {
-                        // In a real app, this would be actual WebRTC signaling
-                        if (targetId && targetId !== this.deviceId) {
-                            // Create a mock data channel
-                            this.dataChannel = {
-                                send: (data) => {
-                                    console.log('Sending data:', data);
-                                    // Simulate receiving on the other end
-                                    this.simulateReceive(data);
-                                },
-                                readyState: 'open'
-                            };
-                            resolve();
-                        } else {
-                            reject(new Error('Invalid device ID'));
-                        }
-                    }, 2000);
-                });
-            }
-
-            simulateReceive(data) {
-                // Simulate receiving data from the other device
-                try {
-                    const parsed = JSON.parse(data);
-                    if (parsed.type === 'file-transfer') {
-                        // Simulate file received
-                        const fileData = parsed.data;
-                        this.addToHistory('received', fileData.name, fileData.size);
-                        this.showToast(`Received: ${fileData.name}`, 'success');
-                    }
-                } catch (e) {
-                    // Binary data - simulate file chunk
-                    console.log('Received binary data');
+            updateStatus(status) {
+                this.statusBadge.className = 'status-badge ' + status;
+                if (status === 'online') {
+                    this.statusBadge.innerHTML = '<i class="fas fa-circle"></i> Online';
+                } else if (status === 'connecting') {
+                    this.statusBadge.innerHTML = '<i class="fas fa-circle"></i> Connecting...';
+                } else {
+                    this.statusBadge.innerHTML = '<i class="fas fa-circle"></i> Offline';
                 }
             }
 
             // ============================================
-            // File Transfer Logic
-            // ============================================
-
-            async sendNextFile() {
-                if (!this.isConnected || !this.dataChannel) {
-                    this.showToast('Not connected to any device', 'warning');
-                    return;
-                }
-
-                const pendingFile = this.fileQueue.find(f => f.status === 'pending');
-                if (!pendingFile) {
-                    this.showToast('No pending files in queue', 'warning');
-                    return;
-                }
-
-                try {
-                    pendingFile.status = 'sending';
-                    this.updateFileList();
-
-                    // Read file as ArrayBuffer
-                    const fileData = await this.readFileAsArrayBuffer(pendingFile.file);
-                    
-                    // Split into chunks (max 16KB per chunk for WebRTC)
-                    const chunkSize = 16384;
-                    const totalChunks = Math.ceil(fileData.byteLength / chunkSize);
-                    
-                    // Send file metadata first
-                    const metadata = {
-                        type: 'file-transfer',
-                        action: 'start',
-                        id: pendingFile.id,
-                        name: pendingFile.name,
-                        size: pendingFile.size,
-                        type: pendingFile.type,
-                        totalChunks: totalChunks
-                    };
-                    
-                    this.dataChannel.send(JSON.stringify(metadata));
-                    
-                    // Send chunks
-                    for (let i = 0; i < totalChunks; i++) {
-                        const start = i * chunkSize;
-                        const end = Math.min(start + chunkSize, fileData.byteLength);
-                        const chunk = fileData.slice(start, end);
-                        
-                        this.dataChannel.send(chunk);
-                        
-                        // Update progress
-                        pendingFile.progress = ((i + 1) / totalChunks) * 100;
-                        this.updateFileList();
-                        
-                        // Simulate network delay
-                        await new Promise(r => setTimeout(r, 10));
-                    }
-                    
-                    // Send completion signal
-                    const completion = {
-                        type: 'file-transfer',
-                        action: 'complete',
-                        id: pendingFile.id
-                    };
-                    this.dataChannel.send(JSON.stringify(completion));
-                    
-                    pendingFile.status = 'completed';
-                    pendingFile.progress = 100;
-                    this.updateFileList();
-                    
-                    this.addToHistory('sent', pendingFile.name, pendingFile.size);
-                    this.showToast(`Sent: ${pendingFile.name}`, 'success');
-                    
-                    // Send next file
-                    setTimeout(() => this.sendNextFile(), 500);
-                    
-                } catch (error) {
-                    console.error('Send error:', error);
-                    pendingFile.status = 'error';
-                    this.updateFileList();
-                    this.showToast('Error sending file: ' + error.message, 'error');
-                }
-            }
-
-            readFileAsArrayBuffer(file) {
-                return new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => resolve(e.target.result);
-                    reader.onerror = reject;
-                    reader.readAsArrayBuffer(file);
-                });
-            }
-
-            // ============================================
-            // Transfer History
+            // HISTORY
             // ============================================
 
             addToHistory(type, filename, size) {
@@ -1158,8 +1528,7 @@
                     type: type,
                     filename: filename,
                     size: size,
-                    timestamp: new Date().toISOString(),
-                    device: type === 'sent' ? this.currentConnection : 'Unknown'
+                    timestamp: new Date().toISOString()
                 };
                 this.transferHistory.unshift(entry);
                 this.saveHistory();
@@ -1169,8 +1538,8 @@
             updateHistory() {
                 if (this.transferHistory.length === 0) {
                     this.historyList.innerHTML = `
-                        <div style="text-align:center;color:var(--text-light);padding:20px;">
-                            <i class="fas fa-history" style="font-size:2rem;display:block;margin-bottom:10px;"></i>
+                        <div class="empty-state">
+                            <i class="fas fa-history"></i>
                             <p>No transfer history</p>
                         </div>
                     `;
@@ -1219,61 +1588,7 @@
             }
 
             // ============================================
-            // UI Updates
-            // ============================================
-
-            updateDeviceList() {
-                if (this.connectedDevices.length === 0) {
-                    this.deviceList.innerHTML = `
-                        <div style="text-align:center;color:var(--text-light);padding:20px;">
-                            <i class="fas fa-search" style="font-size:2rem;display:block;margin-bottom:10px;"></i>
-                            <p>No devices connected</p>
-                            <p style="font-size:0.8rem;">Connect to another device to start sharing</p>
-                        </div>
-                    `;
-                    this.deviceCount.textContent = '(0)';
-                    return;
-                }
-
-                this.deviceList.innerHTML = this.connectedDevices.map(id => `
-                    <div class="device-item active">
-                        <div>
-                            <div class="device-name"><i class="fas fa-device"></i> ${id}</div>
-                            <div class="device-time">Connected • ${new Date().toLocaleTimeString()}</div>
-                        </div>
-                        <button class="btn btn-danger" style="padding:5px 12px;font-size:0.8rem;" onclick="app.disconnectDevice('${id}')">
-                            <i class="fas fa-unlink"></i>
-                        </button>
-                    </div>
-                `).join('');
-
-                this.deviceCount.textContent = `(${this.connectedDevices.length})`;
-            }
-
-            updateStatus(status) {
-                this.statusBadge.className = 'status-badge ' + status;
-                if (status === 'online') {
-                    this.statusBadge.innerHTML = '<i class="fas fa-circle"></i> Online';
-                } else if (status === 'connecting') {
-                    this.statusBadge.innerHTML = '<i class="fas fa-circle"></i> Connecting...';
-                } else {
-                    this.statusBadge.innerHTML = '<i class="fas fa-circle"></i> Offline';
-                }
-            }
-
-            disconnectDevice(id) {
-                this.connectedDevices = this.connectedDevices.filter(d => d !== id);
-                this.updateDeviceList();
-                if (this.currentConnection === id) {
-                    this.isConnected = false;
-                    this.currentConnection = null;
-                    this.dataChannel = null;
-                    this.showToast(`Disconnected from ${id}`, 'warning');
-                }
-            }
-
-            // ============================================
-            // Utility Functions
+            // UTILITY FUNCTIONS
             // ============================================
 
             formatSize(bytes) {
@@ -1300,7 +1615,6 @@
                 navigator.clipboard.writeText(this.deviceId).then(() => {
                     this.showToast('Device ID copied!', 'success');
                 }).catch(() => {
-                    // Fallback
                     const input = document.createElement('input');
                     input.value = this.deviceId;
                     document.body.appendChild(input);
@@ -1310,30 +1624,53 @@
                     this.showToast('Device ID copied!', 'success');
                 });
             }
+
+            disconnectDevice(id) {
+                if (this.peerConnections[id]) {
+                    this.peerConnections[id].close();
+                    delete this.peerConnections[id];
+                }
+                if (this.dataChannels[id]) {
+                    delete this.dataChannels[id];
+                }
+                if (this.currentConnection === id) {
+                    this.isConnected = false;
+                    this.currentConnection = null;
+                    this.connectionStatus.textContent = '(Not connected)';
+                }
+                this.connectedDevices = this.connectedDevices.filter(d => d !== id);
+                this.showToast(`Disconnected from ${id}`, 'warning');
+                this.updateDeviceList(this.connectedDevices);
+            }
         }
 
         // ============================================
-        // Initialize Application
+        // GLOBAL FUNCTIONS
         // ============================================
 
         let app;
 
-        document.addEventListener('DOMContentLoaded', () => {
+        function initApp() {
             app = new FileTransferApp();
-            
-            // Make app globally accessible for onclick handlers
             window.app = app;
             window.copyDeviceId = () => app.copyDeviceId();
             window.connectToDevice = () => app.connectToDevice();
-            window.removeFromQueue = (index) => app.removeFromQueue(index);
-            window.clearHistory = () => app.clearHistory();
+            window.connectToId = (id) => {
+                app.targetDeviceId.value = id;
+                app.connectToDevice();
+            };
             window.disconnectDevice = (id) => app.disconnectDevice(id);
-        });
-
-        // Service Worker for PWA support (optional)
-        if ('serviceWorker' in navigator) {
-            // You can register a service worker here for offline support
+            window.clearHistory = () => app.clearHistory();
         }
+
+        document.addEventListener('DOMContentLoaded', initApp);
+
+        // Auto-reconnect if page becomes visible
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && app && app.socket && !app.socket.connected) {
+                app.connectToSignalingServer();
+            }
+        });
     </script>
 </body>
 </html>
